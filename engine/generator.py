@@ -195,42 +195,18 @@ def sort_video(video_info_list):
 def write_video_info(video_info_list):
     time_1 = time.time()
     # 创建文件字典
-    formwork = {
+    original = {
         "title": time.strftime("%Y-%m-%d", time.localtime()),
         "description": "阿巴阿巴",
         "content": []
     }
-    original = formwork.copy()
-    dict = formwork.copy()
+    screened = {
+        "title": time.strftime("%Y-%m-%d", time.localtime()),
+        "description": "阿巴阿巴",
+        "content": []
+    }
     for i in video_info_list:
         print(i['weight'])
-        if i['weight'] > 1:
-            print(1)
-            dict['content'].append(
-                {
-                    "type": "video",
-                    "title": i['title'],
-                    "description": i['description'],
-                    "url": i['url'],
-                    "cover_url": i['cover_url'],
-                    "pubdate": i['pubdate'],
-                    "data": {
-                        "play": i['play'],
-                        "review": i['review'],
-                        "like": i['like'],
-                        "coin": i['coin'],
-                        "share": i['share'],
-                        "favorite": i['favorite'],
-                        "danmaku": i['danmaku'],
-                        "score": i['score']
-                    },
-                    "author": {
-                        "name": i['author'],
-                        "upic": i['upic']
-                    }
-                }
-            )
-            print(len(dict['content']))
         original['content'].append(
                 {
                     "type": "video",
@@ -253,16 +229,42 @@ def write_video_info(video_info_list):
                         "name": i['author'],
                         "upic": i['upic']
                     }
+                })
+        if i['weight'] > 1:
+            print(1)
+            screened['content'].append(
+                {
+                    "type": "video",
+                    "title": i['title'],
+                    "description": i['description'],
+                    "url": i['url'],
+                    "cover_url": i['cover_url'],
+                    "pubdate": i['pubdate'],
+                    "data": {
+                        "play": i['play'],
+                        "review": i['review'],
+                        "like": i['like'],
+                        "coin": i['coin'],
+                        "share": i['share'],
+                        "favorite": i['favorite'],
+                        "danmaku": i['danmaku'],
+                        "score": i['score']
+                    },
+                    "author": {
+                        "name": i['author'],
+                        "upic": i['upic']
+                    }
                 }
             )
+            print(len(screened['content']))
 
-    print(len(dict['content']))
+    print(len(screened['content']))
 
     print(len(original['content']))
     # 将文件字典写入Json文件
     filename = './data/database/' + time.strftime("%Y-%m-%d", time.localtime()) + '.json'
     with open(filename, 'w', encoding='utf-8') as f:
-        f.write(json.dumps(dict, ensure_ascii=False, indent=4))
+        f.write(json.dumps(screened, ensure_ascii=False, indent=4))
 
     filename = './data/database/' + time.strftime("%Y-%m-%d", time.localtime()) + '-original.json'
     with open(filename, 'w', encoding='utf-8') as f:

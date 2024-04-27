@@ -1,11 +1,10 @@
-# 写完记得改成server.py
 from flask import Flask, jsonify, request
 from markupsafe import escape
 import json
 
 app = Flask(__name__)
-@app.route('/daily/<yy>/<mm>/<dd>')
-def user_page(yy,mm,dd):
+@app.route('/daily')
+def user_page():
     """
     根据给定的年月日，返回对应日期的数据。
 
@@ -18,6 +17,18 @@ def user_page(yy,mm,dd):
     - 如果找到对应日期的数据，则以JSON格式返回数据。
     - 如果未找到对应日期的数据，则返回一个包含错误信息的JSON，状态码为404。
     """
+    yy = request.args.get('yy', type=str)
+    mm = request.args.get('mm', type=str)
+    dd = request.args.get('dd', type=str)
+    if not all([yy, mm, dd]):# 检查是否缺少参数
+        response = jsonify({"error": "missing parameters"})
+        response.status_code = 400
+        return response
+
+    if len(yy)!= 4 or len(mm)!= 2 or len(dd)!= 2:  # 检查参数格式是否正确
+        response = jsonify({"error": "invalid parameters"})
+        response.status_code = 400
+        return response
     # 对输入的年月日进行转义，防止注入攻击
     y=escape(yy)
     m=escape(mm)
@@ -64,14 +75,20 @@ def search(keyword):
     with open('../backend/data/database_list.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
 
+    count = 0  # 记录搜索结果数量
     # 遍历数据库列表，加载每个数据库的视频信息
-    for i in data[len(data) - 5 * (page):len(data) - 5 * (page - 1)]:
+    for i in data:
         with open('../backend/data/database/' + i + '.json', 'r', encoding='utf-8') as f:
             video_data = json.load(f)
 
             # 在每个视频的信息中搜索关键词
             for j in video_data['content']:
                 if keyword in j['title'] or keyword in j['description']:
+                    count += 1  # 记录搜索结果数量
+                    if count <= (page - 1) * 30:  # 如果当前搜索结果数量小于当前页码乘以每页显示数量，则跳过当前视频
+                        continue
+                    elif count > page * 30:  # 如果当前搜索结果数量大于等于当前页码乘以每页显示数量，则跳出循环
+                        break
                     res.append(j)  # 如果关键词匹配，则将视频信息添加到结果列表
 
     # 如果没有找到匹配的视频信息，则返回404错误

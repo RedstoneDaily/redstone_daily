@@ -191,84 +191,53 @@ def sort_video(video_info_list):
     return video_info_list
 
 
+def transform_video_item(video_item: dict) -> dict:
+    return {
+        "type": "video",
+        "title": video_item['title'],
+        "description": video_item['description'],
+        "url": video_item['url'],
+        "cover_url": video_item['cover_url'],
+        "pubdate": video_item['pubdate'],
+        "data": {
+            "play": video_item['play'],
+            "review": video_item['review'],
+            "like": video_item['like'],
+            "coin": video_item['coin'],
+            "share": video_item['share'],
+            "favorite": video_item['favorite'],
+            "danmaku": video_item['danmaku'],
+            "score": video_item['score']
+        },
+        "author": {
+            "name": video_item['author'],
+            "upic": video_item['upic']
+        }
+    }
+
+
 # 将视频信息写入文件
-def write_video_info(video_info_list):
+def write_video_info(video_info_list: list[dict]):
     time_1 = time.time()
+    filtered_video_info_list = list(filter(lambda i: i['weight'] > 1, video_info_list))
     # 创建文件字典
-    original = {
+    all = {
         "title": time.strftime("%Y-%m-%d", time.localtime()),
         "description": "阿巴阿巴",
-        "content": []
+        "content": list(map(transform_video_item, video_info_list))
     }
-    screened = {
-        "title": time.strftime("%Y-%m-%d", time.localtime()),
-        "description": "阿巴阿巴",
-        "content": []
-    }
-    for i in video_info_list:
-        print(i['weight'])
-        original['content'].append(
-                {
-                    "type": "video",
-                    "title": i['title'],
-                    "description": i['description'],
-                    "url": i['url'],
-                    "cover_url": i['cover_url'],
-                    "pubdate": i['pubdate'],
-                    "data": {
-                        "play": i['play'],
-                        "review": i['review'],
-                        "like": i['like'],
-                        "coin": i['coin'],
-                        "share": i['share'],
-                        "favorite": i['favorite'],
-                        "danmaku": i['danmaku'],
-                        "score": i['score']
-                    },
-                    "author": {
-                        "name": i['author'],
-                        "upic": i['upic']
-                    }
-                })
-        if i['weight'] > 1:
-            print(1)
-            screened['content'].append(
-                {
-                    "type": "video",
-                    "title": i['title'],
-                    "description": i['description'],
-                    "url": i['url'],
-                    "cover_url": i['cover_url'],
-                    "pubdate": i['pubdate'],
-                    "data": {
-                        "play": i['play'],
-                        "review": i['review'],
-                        "like": i['like'],
-                        "coin": i['coin'],
-                        "share": i['share'],
-                        "favorite": i['favorite'],
-                        "danmaku": i['danmaku'],
-                        "score": i['score']
-                    },
-                    "author": {
-                        "name": i['author'],
-                        "upic": i['upic']
-                    }
-                }
-            )
-            print(len(screened['content']))
+    filtered = all.copy()
+    filtered["content"] = list(map(transform_video_item, filtered_video_info_list))
 
-    print(len(screened['content']))
-
-    print(len(original['content']))
     # 将文件字典写入Json文件
-    filename = './data/database/' + time.strftime("%Y-%m-%d", time.localtime()) + '.json'
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write(json.dumps(screened, ensure_ascii=False, indent=4))
-
-    filename = './data/database/' + time.strftime("%Y-%m-%d", time.localtime()) + '-original.json'
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write(json.dumps(original, ensure_ascii=False, indent=4))
+    _filename = './data/database/' + \
+        time.strftime("%Y-%m-%d", time.localtime()) + '.json'
+    
+    with open(_filename + '.json', 'w', encoding='utf-8') as f:
+        f.write(json.dumps(filtered, ensure_ascii=False, indent=4))
+        
+    with open(_filename + '-original.json', 'w', encoding='utf-8') as f:
+        f.write(json.dumps(all, ensure_ascii=False, indent=4))
 
     time_2 = time.time()
     print('写入文件已完成,耗时', time_2 - time_1, '秒')

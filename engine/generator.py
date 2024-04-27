@@ -58,6 +58,7 @@ def is_video_compliant(title, description, tags, weight_map):
         if i['keyword'] not in tags:
             weight *= i['tags'][1]
 
+    print('权重为', weight)
     return weight
 
 
@@ -68,7 +69,7 @@ def calc_score(like, view, favorite, coin, share, review):
     return (like + share + 5 * review) / view * (100 * coin + 25 * favorite) / view
 
 
-def get_today_video(credential_obj, config, weight_map):
+def get_today_video(config, weight_map):#credential_obj
     # 初始化计数器
     i = 0
     print('程序已启动,开始搜索视频')
@@ -119,9 +120,10 @@ def get_today_video(credential_obj, config, weight_map):
         if not config['search']['enable_screening']:
             video = [video, counter]
         # 创建bilivideo.Video对象并获取其详细信息
-        video_obj = bilivideo.Video(bvid=video[0]["bvid"], credential=credential_obj)
+        video_obj = bilivideo.Video(bvid=video[0]["bvid"])#, credential=credential_obj
         res = sync(video_obj.get_info())
 
+        # 处理标题数据
         new_title = ''
         flag = False
         for i in video[0]['title']:
@@ -193,14 +195,17 @@ def sort_video(video_info_list):
 def write_video_info(video_info_list):
     time_1 = time.time()
     # 创建文件字典
-    dict = {
+    formwork = {
         "title": time.strftime("%Y-%m-%d", time.localtime()),
         "description": "阿巴阿巴",
         "content": []
     }
-    original = dict
-    for i in tqdm(video_info_list):
+    original = formwork.copy()
+    dict = formwork.copy()
+    for i in video_info_list:
+        print(i['weight'])
         if i['weight'] > 1:
+            print(1)
             dict['content'].append(
                 {
                     "type": "video",
@@ -225,6 +230,7 @@ def write_video_info(video_info_list):
                     }
                 }
             )
+            print(len(dict['content']))
         original['content'].append(
                 {
                     "type": "video",
@@ -250,6 +256,9 @@ def write_video_info(video_info_list):
                 }
             )
 
+    print(len(dict['content']))
+
+    print(len(original['content']))
     # 将文件字典写入Json文件
     filename = './data/database/' + time.strftime("%Y-%m-%d", time.localtime()) + '.json'
     with open(filename, 'w', encoding='utf-8') as f:

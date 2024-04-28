@@ -231,7 +231,7 @@ def write_video_info(video_info_list: list[dict]):
 
     # 将文件字典写入Json文件
     _filename = './data/database/' + \
-        time.strftime("%Y-%m-%d", time.localtime()) + '.json'
+        time.strftime("%Y-%m-%d", time.localtime())
     
     with open(_filename + '.json', 'w', encoding='utf-8') as f:
         f.write(json.dumps(filtered, ensure_ascii=False, indent=4))

@@ -36,11 +36,11 @@ def filter(title, description, tags, weight_map):
 
     # 处理关键词
     for i in weight_map['terms']:  # 术语(权重1.5)
-        if i['keyword'] in title or i['keyword'] in description or i['keyword'] in tags:
+        if i in title or i in description or i in tags:
             weight *= 1.5
 
     for i in weight_map['blacklist']:  # 黑名单(权重0)
-        if i['keyword'] in title or i['keyword'] in description or i['keyword'] in tags:
+        if i in title or i in description or i in tags:
             weight *= 0
 
     # 处理特殊权重

@@ -32,7 +32,7 @@
             {"keyword": "JE", "weight": 2},
             {"keyword": "基岩", "weight": 2},
             {"keyword": "JAVA", "weight": 2},
-            {"keyword": "网易", "weight": 2},
+            {"keyword": "网易", "weight": 2}
         ],
         "special": [
             {

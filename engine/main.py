@@ -42,6 +42,8 @@ import time
 # set cwd
 import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+#打印工作目录
+print("当前工作目录:", os.getcwd())
 
 with open('config/config.json', 'r', encoding='utf-8') as f:
     config = json.load(f)

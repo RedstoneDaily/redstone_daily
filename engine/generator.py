@@ -8,7 +8,7 @@ from bilibili_api import sync, video as bilivideo
 from tqdm import tqdm
 
 
-def filter(title, description, tags, weight_map):
+def filter_video(title, description, tags, weight_map):
     # 处理标题数据
     flag = False
     tmp_string = ''
@@ -92,7 +92,7 @@ def get_today_video(config, weight_map):
         # 遍历所有视频，过滤出符合规则的视频并添加到临时列表中
         for video in tqdm(video_list):
             i += 1
-            weight = filter(video['title'], video['description'], video['tag'], weight_map)
+            weight = filter_video(video['title'], video['description'], video['tag'], weight_map)
             temp_video_list.append([video, weight])
 
         video_list = temp_video_list
@@ -229,7 +229,7 @@ def write_video_info(video_info_list: list[dict]):
     filtered["content"] = list(map(transform_video_item, filtered_video_info_list))
 
     # 将文件字典写入Json文件
-    _filename = './data/database/' + \
+    _filename = './engine/data/database/' + \
         time.strftime("%Y-%m-%d", time.localtime())
     
     with open(_filename + '.json', 'w', encoding='utf-8') as f:
@@ -252,10 +252,10 @@ def update_database_list():
             return False
     
     # 写模式打开数据库列表 ./data/database_list.json，如没有则创建
-    with open('./data/database_list.json', 'w', encoding='utf-8') as f:
+    with open('./engine/data/database_list.json', 'w', encoding='utf-8') as f:
         # 搜索./data/database/目录下的所有json文件
         file_list = []
-        for file in os.listdir('./data/database/'):
+        for file in os.listdir('./engine/data/database/'):
             if file.endswith('.json') and is_valid_date(file[:-5]):
                 file_list.append(file[:-5])
     

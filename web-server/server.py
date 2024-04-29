@@ -35,13 +35,23 @@ gallery_dir = pages_dir / "pages-legacy" / "GalleryDemo"
 #     return render_template('home.html')
 
 # 这个可以不用吗？
-@app.route("/daily", methods=['GET'])
-def daily_test():
+# @app.route("/daily", methods=['GET'])
+# def daily_test():
+#     print("{pages_dir}/index.html")
+#     return send_file(f"{pages_dir}/index.html")
+
+# @app.route("/daily/<path:filename>", methods=['GET'])
+# def daily_test_res(filename):
+#     directory = f"{pages_dir}"  # 假设在当前目录
+#     return send_from_directory(directory, filename, as_attachment=False)
+
+@app.route("/", methods=['GET'])
+def home():
     print("{pages_dir}/index.html")
     return send_file(f"{pages_dir}/index.html")
 
-@app.route("/daily/<path:filename>", methods=['GET'])
-def daily_test_res(filename):
+@app.route("/<path:filename>", methods=['GET'])
+def res(filename):
     directory = f"{pages_dir}"  # 假设在当前目录
     return send_from_directory(directory, filename, as_attachment=False)
 

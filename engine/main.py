@@ -41,13 +41,14 @@ import time
 
 # set cwd
 import os
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+from pathlib import Path
+os.chdir(Path(__file__).parent.parent)
 #打印工作目录
 print("当前工作目录:", os.getcwd())
 
-with open('config/config.json', 'r', encoding='utf-8') as f:
+with open('engine/config/config.json', 'r', encoding='utf-8') as f:
     config = json.load(f)
-with open('config/weight_map.json', 'r', encoding='utf-8') as f:
+with open('engine/config/weight_map.json', 'r', encoding='utf-8') as f:
     weight_map = json.load(f)
 time_1 = time.time()
 videos = generator.get_today_video(config, weight_map)

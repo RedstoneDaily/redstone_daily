@@ -8,7 +8,7 @@ from bilibili_api import sync, video as bilivideo
 from tqdm import tqdm
 
 
-def is_video_compliant(title, description, tags, weight_map):
+def filter(title, description, tags, weight_map):
     # 处理标题数据
     flag = False
     tmp_string = ''
@@ -35,13 +35,13 @@ def is_video_compliant(title, description, tags, weight_map):
             weight *= i['weight']
 
     # 处理关键词
-    for i in weight_map['terms']:
-        if i in title:
+    for i in weight_map['terms']:  # 术语(权重1.5)
+        if i['keyword'] in title or i['keyword'] in description or i['keyword'] in tags:
             weight *= 1.5
-        if i in description:
-            weight *= 1.5
-        if i in tags:
-            weight *= 1.5
+
+    for i in weight_map['blacklist']:  # 黑名单(权重0)
+        if i['keyword'] in title or i['keyword'] in description or i['keyword'] in tags:
+            weight *= 0
 
     # 处理特殊权重
     for i in weight_map['weight_map']['special']:
@@ -58,7 +58,6 @@ def is_video_compliant(title, description, tags, weight_map):
         if i['keyword'] not in tags:
             weight *= i['tags'][1]
 
-    print('权重为', weight)
     return weight
 
 
@@ -69,7 +68,7 @@ def calc_score(like, view, favorite, coin, share, review):
     return (like + share + 5 * review) / view * (100 * coin + 25 * favorite) / view
 
 
-def get_today_video(config, weight_map):#credential_obj
+def get_today_video(config, weight_map):
     # 初始化计数器
     i = 0
     print('程序已启动,开始搜索视频')
@@ -93,7 +92,7 @@ def get_today_video(config, weight_map):#credential_obj
         # 遍历所有视频，过滤出符合规则的视频并添加到临时列表中
         for video in tqdm(video_list):
             i += 1
-            weight = is_video_compliant(video['title'], video['description'], video['tag'], weight_map)
+            weight = filter(video['title'], video['description'], video['tag'], weight_map)
             temp_video_list.append([video, weight])
 
         video_list = temp_video_list
@@ -120,7 +119,7 @@ def get_today_video(config, weight_map):#credential_obj
         if not config['search']['enable_screening']:
             video = [video, counter]
         # 创建bilivideo.Video对象并获取其详细信息
-        video_obj = bilivideo.Video(bvid=video[0]["bvid"])#, credential=credential_obj
+        video_obj = bilivideo.Video(bvid=video[0]["bvid"])
         res = sync(video_obj.get_info())
 
         # 处理标题数据

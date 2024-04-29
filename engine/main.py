@@ -44,6 +44,11 @@ import time
 '''with open('config/credential.txt', 'r', encoding='utf-8') as f:
     text = f.read().split('\n')
 credential = Credential('text[1]', 'text[3]')'''
+
+# set cwd
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 with open('config/config.json', 'r', encoding='utf-8') as f:
     config = json.load(f)
 with open('config/weight_map.json', 'r', encoding='utf-8') as f:

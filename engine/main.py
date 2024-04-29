@@ -39,12 +39,6 @@ import generator
 import json
 import time
 
-#from bilibili_api import Credential
-
-'''with open('config/credential.txt', 'r', encoding='utf-8') as f:
-    text = f.read().split('\n')
-credential = Credential('text[1]', 'text[3]')'''
-
 # set cwd
 import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -54,7 +48,7 @@ with open('config/config.json', 'r', encoding='utf-8') as f:
 with open('config/weight_map.json', 'r', encoding='utf-8') as f:
     weight_map = json.load(f)
 time_1 = time.time()
-videos = generator.get_today_video(config, weight_map)#credential
+videos = generator.get_today_video(config, weight_map)
 generator.write_video_info(generator.sort_video(videos))
 generator.update_database_list()
 time_2 = time.time()

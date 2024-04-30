@@ -1,3 +1,4 @@
-bilibili-api-python==16.2.0
-tqdm==4.66.2
-Flask==3.0.3
+bilibili-api-python
+tqdm
+Flask
+flask_cors

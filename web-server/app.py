@@ -1,8 +1,15 @@
+import os
+from pathlib import Path
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from markupsafe import escape
 import json
 
+os.chdir(Path(__file__).parent.parent)  # 切换工作目录到当前文件所在目录
+
 app = Flask(__name__)
+CORS(app, origins=["http://localhost:18042"])
+
 @app.route('/daily')
 def user_page():
     """
@@ -38,14 +45,14 @@ def user_page():
     date_string = y + '-' + m + '-' + d
 
     # 打开并读取数据列表文件
-    with open('../backend/data/database_list.json', 'r', encoding='utf-8') as f:
+    with open('../backend/engine/data/database_list.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
 
     # 遍历数据列表，查找匹配的日期
     for i in data:
         if i == date_string:
             # 打开并读取对应日期的数据文件
-            with open('../backend/data/database/' + date_string + '.json', 'r', encoding='utf-8') as f:
+            with open('../backend/engine/data/database/' + date_string + '.json', 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 return jsonify(data)  # 找到匹配日期，返回数据
 

@@ -39,31 +39,29 @@ import generator
 import json
 import time
 
-#from bilibili_api import Credential
-
-'''with open('config/credential.txt', 'r', encoding='utf-8') as f:
-    text = f.read().split('\n')
-credential = Credential('text[1]', 'text[3]')'''
-
 # set cwd
 import os
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+# 更改工作目录到工程根目录的上一级
+os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-with open('config/config.json', 'r', encoding='utf-8') as f:
+#打印工作目录
+print("当前工作目录:", os.getcwd())
+
+with open('engine/config/config.json', 'r', encoding='utf-8') as f:
     config = json.load(f)
-with open('config/weight_map.json', 'r', encoding='utf-8') as f:
+with open('engine/config/weight_map.json', 'r', encoding='utf-8') as f:
     weight_map = json.load(f)
 time_1 = time.time()
-videos = generator.get_today_video(config, weight_map)#credential
+videos = generator.get_today_video(config, weight_map)
 generator.write_video_info(generator.sort_video(videos))
 generator.update_database_list()
 time_2 = time.time()
 print('程序已结束,耗时', time_2 - time_1, '秒')
-with open('count.txt', 'r', encoding='utf-8') as f:
+with open('engine/count.txt', 'r', encoding='utf-8') as f:
     try:
         count = int(f.read()) + 1
     except:
         count = 1
 
-with open('count.txt', 'w', encoding='utf-8') as f:
+with open('engine/count.txt', 'w', encoding='utf-8') as f:
     f.write(str(count))

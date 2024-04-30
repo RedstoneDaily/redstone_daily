@@ -99,3 +99,9 @@ def search(keyword):
 
     return res  # 返回搜索结果列表
 
+@app.route('/')
+def index():
+    """
+    首页
+    """
+    return "./frontend/index.html"

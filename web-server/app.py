@@ -3,7 +3,7 @@ from markupsafe import escape
 import json
 
 app = Flask(__name__)
-@app.route('/daily')
+@app.route('/api/daily')
 def user_page():
     """
     根据给定的年月日，返回对应日期的数据。
@@ -54,7 +54,7 @@ def user_page():
     response.status_code = 404
     return response
 
-@app.route('/search/<keyword>')
+@app.route('/api/search/<keyword>')
 def search(keyword):
     """
     根据提供的关键词搜索视频信息。
@@ -98,6 +98,54 @@ def search(keyword):
         return response
 
     return res  # 返回搜索结果列表
+
+@app.route('/api/get_title/')
+def get_title():
+    """
+    获取制定日期的视频标题。
+    参数:
+    - yy: 年份，字符串格式
+    - mm: 月份，字符串格式
+    - dd: 日，字符串格式
+    返回值:
+    - 如果找到对应日期的视频标题，则返回一个包含标题的JSON响应。
+    """
+    yy = request.args.get('yy', type=str)
+    mm = request.args.get('mm', type=str)
+    dd = request.args.get('dd', type=str)
+    if not all([yy, mm, dd]):  # 检查是否缺少参数
+        response = jsonify({"error": "missing parameters"})
+        response.status_code = 400
+        return response
+    if len(yy)!= 4 or len(mm)!= 2 or len(dd)!= 2:  # 检查参数格式是否正确
+        response = jsonify({"error": "invalid parameters"})
+        response.status_code = 400
+        return response
+    # 对输入的年月日进行转义，防止注入攻击
+    y=escape(yy)
+    m=escape(mm)
+    d=escape(dd)
+    # 将转义后的年月日拼接成日期字符串
+    date_string = y + '-' + m + '-' + d
+    # 打开并读取数据列表文件
+    with open('../backend/data/database_list.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    # 遍历数据列表，查找匹配的日期
+    for i in data:
+        if i == date_string:
+            # 打开并读取对应日期的数据文件
+            with open('../backend/data/database/' + date_string + '.json', 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return jsonify({"title":data['content'][0]['title']})  # 找到匹配日期，返回数据
+
+    # 未找到匹配日期，返回错误信息
+    response = jsonify({"error": "not found"})
+    response.status_code = 404
+    return response
+
+
+
 
 @app.route('/')
 def index():

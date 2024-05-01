@@ -109,7 +109,7 @@ def search(keyword):
 @app.route('/api/get_title/')
 def get_title():
     """
-    获取制定日期的视频标题。
+    获取制定日期的日报标题。
     参数:
     - yy: 年份，字符串格式
     - mm: 月份，字符串格式

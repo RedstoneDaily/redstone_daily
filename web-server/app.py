@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 from markupsafe import escape
 import json
@@ -188,4 +188,4 @@ def index():
     """
     首页
     """
-    return "./frontend/index.html"
+    return send_file("./frontend/index.html")

@@ -152,6 +152,18 @@ def query():
     response.status_code = 404
     return response
 
+@app.route('/api/list')
+def list():
+    """
+    获取日报列表。
+    返回值:
+    - 如果找到日报列表，则返回一个包含日报列表的JSON响应。
+    """
+    # 打开并读取数据列表文件
+    with open('../backend/engine/data/database_list.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    return jsonify(data)  # 返回日报列表
 
 def get_title(y, m, d):
     """

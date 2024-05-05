@@ -1,4 +1,4 @@
-from bilibili_api import search, sync
+from bilibili_api import search, sync, video, video_zone
 import time, sys
 from tqdm import tqdm
 
@@ -10,7 +10,7 @@ def search_from_bilibili(page, keyword):
 
     # 同步执行搜索函数
     print(page)
-    res = sync(search.search_by_type(keyword, search_type=search_type, order_type=order_type, page=page, page_size=20))
+    res = sync(search.search_by_type(keyword, search_type=search_type, order_type=order_type, video_zone_type=video_zone.VideoZoneTypes.GAME, page=page, page_size=20))
 
     # 过滤出最近1天的视频
     recent_videos = []

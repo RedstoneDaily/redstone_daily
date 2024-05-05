@@ -9,7 +9,7 @@ def search_from_bilibili(page, keyword):
     order_type = search.OrderVideo.PUBDATE
 
     # 同步执行搜索函数
-    print(page)
+    print(f"第{page}页")
     res = sync(search.search_by_type(keyword, search_type=search_type, order_type=order_type, video_zone_type=video_zone.VideoZoneTypes.GAME, page=page, page_size=20))
 
     # 过滤出最近1天的视频

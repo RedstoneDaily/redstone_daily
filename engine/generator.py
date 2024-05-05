@@ -257,7 +257,10 @@ def update_database_list():
         file_list = []
         for file in os.listdir('./engine/data/database/'):
             if file.endswith('.json') and is_valid_date(file[:-5]):
-                file_list.append(file[:-5])
+                with open('./engine/data/database/' + file, 'r', encoding='utf-8') as f2:
+                    # 获取标题
+                    title = json.load(f2)['content'][0]['title']
+                file_list.append({"title": title, "date": file[:-5]})
     
         # 将文件列表以最小化格式写入数据库列表文件
         f.write(json.dumps(file_list, ensure_ascii=False, separators=(',', ':'), sort_keys=True))

@@ -106,16 +106,16 @@ def search(keyword):
 
     return res  # 返回搜索结果列表
 
-@app.route('/api/get_title/')
-def get_title():
+@app.route('/api/query/')
+def query():
     """
-    获取制定日期的日报标题。
+    根据提供的日期查询日报信息。
     参数:
     - yy: 年份，字符串格式
     - mm: 月份，字符串格式
     - dd: 日，字符串格式
     返回值:
-    - 如果找到对应日期的视频标题，则返回一个包含标题的JSON响应。
+    - 如果找到对应日期的日报信息，则返回一个包含日报信息的JSON响应。
     """
     yy = request.args.get('yy', type=str)
     mm = request.args.get('mm', type=str)
@@ -132,6 +132,35 @@ def get_title():
     y=escape(yy)
     m=escape(mm)
     d=escape(dd)
+    # 将转义后的年月日拼接成日期字符串
+    date_string = y + '-' + m + '-' + d
+    # 打开并读取数据列表文件
+    with open('../backend/engine/data/database_list.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    # 遍历数据列表，查找匹配的日期
+    for i in data:
+        if i == date_string:
+            # 返回对应日期的日报标题
+            return get_title(y, m, d)
+
+
+    # 未找到匹配日期，返回错误信息
+    response = jsonify({"error": "not found"})
+    response.status_code = 404
+    return response
+
+
+def get_title(y, m, d):
+    """
+    获取制定日期的日报标题。
+    参数:
+    - yy: 年份，字符串格式
+    - mm: 月份，字符串格式
+    - dd: 日，字符串格式
+    返回值:
+    - 如果找到对应日期的视频标题，则返回一个包含标题的JSON响应。
+    """
     # 将转义后的年月日拼接成日期字符串
     date_string = y + '-' + m + '-' + d
     # 打开并读取数据列表文件

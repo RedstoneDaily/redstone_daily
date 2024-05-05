@@ -52,7 +52,7 @@ def user_page():
 
     # 遍历数据列表，查找匹配的日期
     for i in data:
-        if i == date_string:
+        if i["date"] == date_string:
             # 打开并读取对应日期的数据文件
             with open('../backend/engine/data/database/' + date_string + '.json', 'r', encoding='utf-8') as f:
                 data = json.load(f)

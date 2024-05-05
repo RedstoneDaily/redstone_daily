@@ -1,11 +1,13 @@
 import os
 from pathlib import Path
-from flask import Flask, jsonify, request, send_file
+from flask import send_file, send_from_directory
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from markupsafe import escape
 import json
 
-os.chdir(Path(__file__).parent.parent)  # 切换工作目录到当前文件所在目录
+os.chdir(Path(__file__).parent.parent)  # 切换工作目录到仓库根目录
+pages_dir = Path.cwd().parent / "frontend" # 前端页面目录
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:18042"])
@@ -181,11 +183,14 @@ def get_title(y, m, d):
     return response
 
 
-
-
-@app.route('/')
+@app.route('/', methods=['GET'])
 def index():
     """
     首页
     """
-    return send_file("./frontend/index.html")
+    return send_file(pages_dir / 'index.html')
+
+@app.route("/<path:filename>", methods=['GET'])
+def res(filename):
+    directory = f"{pages_dir}"  # 假设在当前目录
+    return send_from_directory(directory, filename, as_attachment=False)

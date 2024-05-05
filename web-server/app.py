@@ -163,7 +163,18 @@ def list():
     with open('../backend/engine/data/database_list.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
 
-    return jsonify(data)  # 返回日报列表
+    result = []  # 初始化日报列表
+    for i in data:
+        # 打开并读取对应日期的数据文件
+        with open('../backend/engine/data/database/' + i + '.json', 'r', encoding='utf-8') as f:
+            # 读取标题
+            data = json.load(f)
+            title = data['content'][0]['title']
+
+        # 添加数据到列表
+        result.append({'date': i, 'title': title})
+
+    return jsonify(result)  # 返回日报列表
 
 def get_title(y, m, d):
     """

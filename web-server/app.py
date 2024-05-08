@@ -11,7 +11,8 @@ pages_dir = Path.cwd().parent / "frontend" # 前端页面目录
 
 app = Flask(__name__)
 # CORS(app, origins=["http://localhost:18042"])
-CORS(app, origins=["http://120.27.231.122"])
+# CORS(app, origins=["http://120.27.231.122"])
+CORS(app)
 
 @app.route('/api/daily')
 def user_page():

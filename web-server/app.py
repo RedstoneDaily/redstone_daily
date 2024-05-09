@@ -10,7 +10,9 @@ os.chdir(Path(__file__).parent.parent)  # 切换工作目录到仓库根目录
 pages_dir = Path.cwd().parent / "frontend" # 前端页面目录
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:18042"])
+# CORS(app, origins=["http://localhost:18042"])
+# CORS(app, origins=["http://120.27.231.122"])
+CORS(app)
 
 @app.route('/api/daily')
 def user_page():
@@ -52,7 +54,7 @@ def user_page():
 
     # 遍历数据列表，查找匹配的日期
     for i in data:
-        if i == date_string:
+        if i["date"] == date_string:
             # 打开并读取对应日期的数据文件
             with open('engine/data/database/' + date_string + '.json', 'r', encoding='utf-8') as f:
                 data = json.load(f)

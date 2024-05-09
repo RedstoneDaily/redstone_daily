@@ -1,5 +1,5 @@
 import os
-from random import random
+import random
 import crawler
 import json
 import time
@@ -171,7 +171,7 @@ def get_today_video(config, weight_map):
         })  # 将视频信息添加到结果列表中
 
         # 为了避免频繁请求，暂停0.5~2秒后再处理下一个视频
-        time.sleep(random.randint(0.5, 2))
+        time.sleep(random.uniform(0.5, 2))
     # 返回处理完成的视频信息列表
     time_4 = time.time()
     print('处理已完成耗时', time_4 - time_3, '秒,开始排序')

@@ -47,14 +47,14 @@ def user_page():
     date_string = y + '-' + m + '-' + d
 
     # 打开并读取数据列表文件
-    with open('../backend/engine/data/database_list.json', 'r', encoding='utf-8') as f:
+    with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
 
     # 遍历数据列表，查找匹配的日期
     for i in data:
         if i == date_string:
             # 打开并读取对应日期的数据文件
-            with open('../backend/engine/data/database/' + date_string + '.json', 'r', encoding='utf-8') as f:
+            with open('engine/data/database/' + date_string + '.json', 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 return jsonify(data)  # 找到匹配日期，返回数据
 
@@ -81,13 +81,13 @@ def search(keyword):
     res = []  # 初始化搜索结果列表
 
     # 从json文件中加载数据库列表
-    with open('../backend/engine/data/database_list.json', 'r', encoding='utf-8') as f:
+    with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
 
     count = 0  # 记录搜索结果数量
     # 遍历数据库列表，加载每个数据库的视频信息
     for i in data:
-        with open('../backend/engine/data/database/' + i + '.json', 'r', encoding='utf-8') as f:
+        with open('engine/data/database/' + i + '.json', 'r', encoding='utf-8') as f:
             video_data = json.load(f)
 
             # 在每个视频的信息中搜索关键词
@@ -130,7 +130,7 @@ def query():
     start_date = start.split('-')
     stop_date = stop.split('-')
     # 打开并读取数据列表文件
-    with open('../backend/engine/data/database_list.json', 'r', encoding='utf-8') as f:
+    with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
 
     res = []  # 初始化搜索结果列表
@@ -159,11 +159,29 @@ def list():
     - 如果找到日报列表，则返回一个包含日报列表的JSON响应。
     """
     # 打开并读取数据列表文件
-    with open('../backend/engine/data/database_list.json', 'r', encoding='utf-8') as f:
+    with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
 
     return jsonify(data)  # 返回日报列表
 
+@app.route('/api/lastest')
+def lastest():
+    """
+    获取最新日报。
+    返回值:
+    返回一个包含最新日报的JSON响应。
+    """
+    # 打开并读取数据列表文件
+    with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    lastest_date = data[-1]  # 获取最新日报日期
+
+    # 打开并读取最新日报数据文件
+    with open('engine/data/database/' + lastest_date + '.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    return jsonify(data)  # 返回最新日报数据
 @app.route('/', methods=['GET'])
 def index():
     """

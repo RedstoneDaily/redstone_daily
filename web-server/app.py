@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from flask import send_file, send_from_directory
+from flask import send_file, send_from_directory, redirect
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from markupsafe import escape
@@ -13,6 +13,14 @@ app = Flask(__name__)
 # CORS(app, origins=["http://localhost:18042"])
 # CORS(app, origins=["http://120.27.231.122"])
 CORS(app)
+
+# 把https请求重定向到http请求
+@app.before_request
+def before_request():
+    if request.url.startswith('https'):
+        url = request.url.replace('https', 'http', 1)
+        code = 301
+        return redirect(url, code=code)
 
 @app.route('/api/daily')
 def user_page():

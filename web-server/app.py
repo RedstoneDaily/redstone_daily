@@ -203,3 +203,5 @@ def index():
 def res(filename):
     directory = f"{pages_dir}"  # 假设在当前目录
     return send_from_directory(directory, filename, as_attachment=False)
+
+app.run(ssl_context='adhoc')

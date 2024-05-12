@@ -10,6 +10,14 @@ from tqdm import tqdm
 
 
 def filter_video(title, description, tags, weight_map):
+    """
+    根据权重列表过滤视频数据
+    :param title:
+    :param description:
+    :param tags:
+    :param weight_map:
+    :return:
+    """
     # 处理标题数据
     flag = False
     tmp_string = ''
@@ -176,19 +184,6 @@ def get_today_video(config, weight_map):
     time_4 = time.time()
     print('处理已完成耗时', time_4 - time_3, '秒,开始排序')
     return result_list
-
-
-# 对视频依据self['weight']进行排序
-def sort_video(video_info_list):
-    # 从大到小排序,使用冒泡排序
-    time_1 = time.time()
-    for i in range(len(video_info_list)):
-        for j in range(len(video_info_list) - 1):
-            if video_info_list[j]['score'] < video_info_list[j + 1]['score']:
-                video_info_list[j], video_info_list[j + 1] = video_info_list[j + 1], video_info_list[j]
-    time_2 = time.time()
-    print('排序已完成,耗时', time_2 - time_1, '秒,开始写入文件')
-    return video_info_list
 
 
 def transform_video_item(video_item: dict) -> dict:

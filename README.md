@@ -12,4 +12,4 @@
 
 ### webserver: 用于展示日报数据的后端flask框架
 
-webserver用于网页的展示，以及API用于前端获取日报信息，参考[这里](webserver/README.md)
+webserver用于网页的展示，以及API用于前端获取日报信息，参考[这里](web-server/README.md)

@@ -17,8 +17,8 @@ CORS(app)
 # 把https请求重定向到http请求
 @app.before_request
 def before_request():
-    if request.url.startswith('https'):
-        url = request.url.replace('http', 'https', 1)
+    if request.url.startswith('https://'):
+        url = request.url.replace('https://', 'http://', 1)
         code = 301
         return redirect(url, code=code)
 

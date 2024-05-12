@@ -18,7 +18,7 @@ CORS(app)
 @app.before_request
 def before_request():
     if request.url.startswith('https'):
-        url = request.url.replace('https', 'http', 1)
+        url = request.url.replace('http', 'https', 1)
         code = 301
         return redirect(url, code=code)
 

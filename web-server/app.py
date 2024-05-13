@@ -82,8 +82,7 @@ def search(keyword):
     - keyword: 用户输入的搜索关键词。
 
     返回值:
-    - 如果找到相关视频信息，则返回一个包含搜索结果的列表。
-    - 如果未找到相关视频信息，则返回一个包含错误信息的JSON响应。
+    - 返回一个包含搜索结果的列表（无结果则返回空列表）
     """
     page = request.args.get('page', type=int, default=1)
     keyword=escape(keyword)  # 转义关键词，防止注入攻击

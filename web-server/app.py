@@ -154,13 +154,6 @@ def query():
 
     return jsonify(res)  # 返回搜索结果列表
 
-
-
-    # 未找到匹配日期，返回错误信息
-    response = jsonify({"error": "not found"})
-    response.status_code = 404
-    return response
-
 @app.route('/api/list')
 def list():
     """

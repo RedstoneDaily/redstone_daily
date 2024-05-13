@@ -174,8 +174,8 @@ def list():
 
     return jsonify(data)  # 返回日报列表
 
-@app.route('/api/lastest')
-def lastest():
+@app.route('/api/latest')
+def latest():
     """
     获取最新日报。
     返回值:
@@ -185,10 +185,10 @@ def lastest():
     with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
 
-    lastest_date = data[-1]  # 获取最新日报日期
+    latest_date = data[-1]["date"]  # 获取最新日报日期
 
     # 打开并读取最新日报数据文件
-    with open('engine/data/database/' + lastest_date + '.json', 'r', encoding='utf-8') as f:
+    with open('engine/data/database/' + latest_date + '.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
 
     return jsonify(data)  # 返回最新日报数据

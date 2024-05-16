@@ -224,6 +224,10 @@ def write_video_info(video_info_list: list[dict]):
     filtered = all.copy()
     filtered["content"] = list(map(transform_video_item, filtered_video_info_list))
 
+    # 创建文件目录
+    if not os.path.exists('./engine/data/database/'):
+        os.makedirs('./engine/data/database/')
+
     # 将文件字典写入Json文件
     _filename = './engine/data/database/' + \
         time.strftime("%Y-%m-%d", time.localtime())

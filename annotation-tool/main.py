@@ -78,14 +78,24 @@ def annotation_data(video_dict, page):
 import os
 import json
 
+pending_data_dict = {"content":[]}
+
 pending_data_dir = 'pending_data'
 
 for file_name in os.listdir(pending_data_dir):
     if file_name.endswith('-original.json'):
         with open(os.path.join(pending_data_dir, file_name), 'r', encoding='utf-8') as f:
             video_dict = json.load(f)
-            for page in range(len(video_dict['content'])):
-                annotation_data(video_dict, page)
+
+            print(len(video_dict['content']))
+
+            for data in video_dict['content']:
+                pending_data_dict["content"].append(data)
+
+print(len(pending_data_dict['content']))
+
+for page in range(len(pending_data_dict['content'])):
+    annotation_data(pending_data_dict, page)
 
 #保存标注结果
 with open('annotation_result.json', 'w', encoding='utf-8') as f:

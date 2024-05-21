@@ -218,6 +218,11 @@ def write_video_info(video_info_list: list[dict]):
     # 创建文件字典
     all = {
         "title": time.strftime("%Y-%m-%d", time.localtime()),
+        "config": {
+            "generate_time": str(datetime.now()),
+            "original_video_count": len(video_info_list),
+            "filtered_video_count": len(filtered_video_info_list)
+        },
         "description": "阿巴阿巴",
         "content": list(map(transform_video_item, video_info_list))
     }

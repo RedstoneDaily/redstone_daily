@@ -22,6 +22,11 @@ def before_request():
         code = 301
         return redirect(url, code=code)
 
+# 重定向字体文件
+@app.route('/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf')
+def redirect_font():
+    return redirect('https://aka.redstonedaily.top/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf', code=302)
+
 @app.route('/api/daily')
 def user_page():
     """

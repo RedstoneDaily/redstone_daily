@@ -2,3 +2,4 @@
 .venv
 /engine/config/credential.txt
 /engine/data/*
+/acaciamc/

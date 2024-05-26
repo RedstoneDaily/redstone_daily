@@ -74,7 +74,7 @@ def filter_video(title, description, tags, weight_map):
 def calc_score(like, view, favorite, coin, share, review):
     if view == 0:
         return 0
-    return (like + share + 5 * review) / view * (100 * coin + 25 * favorite) / view
+    return (like + share + review) / view * (100 * coin + 25 * favorite) / view
 
 
 def get_today_video(config, weight_map):

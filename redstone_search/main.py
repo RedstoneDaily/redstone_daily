@@ -1,5 +1,5 @@
 import asyncio
-import random
+import random, shutil, cv2
 
 from bilibili_api import video, Credential, HEADERS
 import httpx
@@ -48,9 +48,18 @@ def get_random_frame():
     bvid="BV1MVKaebEqA"
     try:
         os.remove('video.mp4')
+    except:
+        print("删除临时文件video.mp4失败")
+
+    try:
+        os.remove('frame.png')
+    except:
+        print("删除临时文件frame.png失败")
+
+    try:
         os.system('rmdir /s /q frames')
     except:
-        pass
+        print("删除临时文件夹frames失败")
     asyncio.get_event_loop().run_until_complete(download_video(bvid))
 
     # 获取随机一帧视频
@@ -66,19 +75,29 @@ def get_random_frame():
         os.makedirs('frames')
 
     # 提取100个切片
+    # 获取时长
 
-    os.system(f'ffmpeg -i {input_video} -vframes 100 frames/frame%04d.png')
+    cap = cv2.VideoCapture(input_video)  # 打开视频文件
+    frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT) # 获取视频的总帧数
+    fps = cap.get(cv2.CAP_PROP_FPS) # 获取帧率
+    duration = frame_count / fps # 计算视频时长，单位为秒
+    cap.release() # 关闭视频文件
+    # 提取帧
+
+    fps = 1/(duration/100) # 计算每秒抽取的帧数
+    os.system(f'ffmpeg -i {input_video} -vf fps={fps} frames/frame%04d.png')
 
     # 随机选择一帧
     frame_list = os.listdir('frames')
+    print(frame_list)
     random_frame = random.choice(frame_list)
+    print(random_frame)
 
     # 复制到输出文件
-    os.system(f'copy frames/{random_frame} {output_image}')
+    shutil.copyfile(os.path.join('frames', random_frame), output_image)
 
     # 删除临时文件
     os.remove('video.mp4')
-    os.system('rmdir /s /q frames')
 
 
 if __name__ == '__main__':

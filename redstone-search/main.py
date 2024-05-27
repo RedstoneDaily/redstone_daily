@@ -142,10 +142,10 @@ def get():
         width, height = img.size
 
         # 计算裁剪的边界
-        left = width * 0.2  # 左边裁剪10%
-        top = height * 0.2  # 上边裁剪10%
-        right = width * 0.8  # 右边保留90%
-        bottom = height * 0.8  # 下边保留90%
+        left = width * 0.2  # 左边裁剪20%
+        top = height * 0.2  # 上边裁剪20%
+        right = width * 0.8  # 右边保留80%
+        bottom = height * 0.8  # 下边保留80%
 
         # 裁剪图片
         cropped_img = img.crop((left, top, right, bottom))
@@ -161,7 +161,3 @@ def get():
         os.remove('frame.png')
     except:
         print("删除临时文件frame.png失败")
-
-if __name__ == '__main__':
-    get()
-

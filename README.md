@@ -3,6 +3,7 @@
 ## 项目介绍
 
 红石日报Redstone Daily是一个开源非盈利的网站项目，收集跟进全网红石科技的最新前沿进展，并以日报、周报、月报以及年报的形式发布， 还有搜索功能可以搜索指定内容进行搜索。
+(好像是不是混进了什么奇奇怪怪的小工具)
 
 ## 项目组成
 
@@ -13,3 +14,7 @@
 ### webserver: 用于展示日报数据的后端flask框架
 
 webserver用于网页的展示，以及API用于前端获取日报信息，参考[这里](web-server/README.md)
+
+### redstone-search: 红石图寻: 小游戏
+
+redstone-search提供一张随机红石图片, 用户可以寻找这张图片的出处并对相似性进行评分。参考[这里](redstone-search/README.md)

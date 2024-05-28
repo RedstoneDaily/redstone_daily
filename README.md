@@ -17,4 +17,4 @@ webserver用于网页的展示，以及API用于前端获取日报信息，参�
 
 ### redstone-search: 红石图寻: 小游戏
 
-redstone-search提供一张随机红石图片, 用户可以寻找这张图片的出处并对相似性进行评分。参考[这里](redstone-search/README.md)
+redstone-search提供一张随机红石图片, 用户可以寻找这张图片的出处并对相似性进行评分。参考[这里](redstonesearch/README.md)

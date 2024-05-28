@@ -1,13 +1,15 @@
 import asyncio
 import json
 import random, shutil, cv2
+from pathlib import Path
 
-from bilibili_api import video, Credential, HEADERS
+from bilibili_api import video, Credential, HEADERS, sync
 import httpx
 import os
 from tqdm import tqdm
 from PIL import Image
 
+os.chdir(Path(__file__).parent.parent)
 async def download_url(url, out):
     # 下载函数
     async with httpx.AsyncClient(headers=HEADERS) as sess:
@@ -51,7 +53,7 @@ async def download_video(bvid = None, aid = None):
         # 删除临时文件
         os.remove("video_temp.m4s")
 
-def get_random_frame(bvid = None, aid = None):
+async def get_random_frame(bvid = None, aid = None):
     # 尝试删除临时文件
     try:
         os.remove('video.mp4')
@@ -70,9 +72,9 @@ def get_random_frame(bvid = None, aid = None):
 
     # 获取视频
     if aid != None:
-        asyncio.get_event_loop().run_until_complete(download_video(aid = aid))
+        await download_video(aid=aid)
     elif bvid != None:
-        asyncio.get_event_loop().run_until_complete(download_video(bvid = bvid))
+        await download_video(bvid = bvid)
     else:
         raise ValueError("bvid 或 aid 必须填写一个")
 
@@ -121,20 +123,33 @@ def get_random_frame(bvid = None, aid = None):
     except:
         print("删除临时文件video.mp4失败")
 
-def get():
+async def get():
+    print("开始获取随机视频")
+
+
     videos = []
     # 读取数据库
-    with open("../engine/data/database_list.json") as list:
+    with open("engine/data/database_list.json") as list:
         files = json.load(list)
         for file in files:
-            with open("../engine/data/database/" + file["date"] + ".json", "r", encoding="utf-8") as f:
-                for video in json.load(f)["content"]:
-                    videos.append(int(video["url"].split("av")[1]))
+            with open("engine/data/database/" + file["date"] + ".json", "r", encoding="utf-8") as f:
+                for _video in json.load(f)["content"]:
+                    videos.append(int(_video["url"].split("av")[1]))
 
-    # 随机选择一个视频
-    aid = random.choice(videos)
-    get_random_frame(aid = aid)
+    async def choose_video():
+        # 随机选择一个视频
+        aid = random.choice(videos)
+        # 视频时长限制
+        v = video.Video(aid = aid)
+        info = await v.get_info()
+        if info['duration'] >= 600:
+            await choose_video()
+            return
+        # 获取视频
+        print(await v.get_info())
+        await get_random_frame(aid = aid)
 
+    await choose_video()
     # 切割帧(主要是切割UP水印)
 
     with Image.open('frame.png') as img:
@@ -150,14 +165,14 @@ def get():
         # 裁剪图片
         cropped_img = img.crop((left, top, right, bottom))
 
-        # 显示裁剪后的图片
-        cropped_img.show()
+        # 删除临时文件
+        try:
+            os.remove('cropped.png')
+        except:
+            print("删除临时文件cropped.png失败")
 
         # 保存裁剪后的图片
-        cropped_img.save('cropped.png')
+        return cropped_img
 
-    # 尝试删除临时文件
-    try:
-        os.remove('frame.png')
-    except:
-        print("删除临时文件frame.png失败")
+if __name__ == '__main__':
+    asyncio.get_event_loop().run_until_complete(get())

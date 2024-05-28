@@ -1,18 +1,33 @@
-import os
+import os, asyncio
 from pathlib import Path
-from flask import send_file, send_from_directory, redirect
+from flask import send_file, send_from_directory, redirect, Response
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from markupsafe import escape
-import json
+import json, io
+from redstonesearch import main as rssget
 
 os.chdir(Path(__file__).parent.parent)  # 切换工作目录到仓库根目录
-pages_dir = Path.cwd().parent / "frontend" # 前端页面目录
+pages_dir = Path.cwd().parent / "frontend"  # 前端页面目录
 
 app = Flask(__name__)
 # CORS(app, origins=["http://localhost:18042"])
 # CORS(app, origins=["http://120.27.231.122"])
 CORS(app)
+
+
+# 异步任务运行函数
+def asyncio_wrapper(job):
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError as ex:
+        print(ex)
+        loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(job)
+    finally:
+        loop.close()
+
 
 # 把https请求重定向到http请求
 @app.before_request
@@ -22,10 +37,12 @@ def before_request():
         code = 301
         return redirect(url, code=code)
 
+
 # 重定向字体文件
 @app.route('/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf')
 def redirect_font():
     return redirect('https://aka.redstonedaily.top/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf', code=302)
+
 
 @app.route('/api/daily')
 def user_page():
@@ -44,19 +61,19 @@ def user_page():
     yy = request.args.get('yy', type=str)
     mm = request.args.get('mm', type=str)
     dd = request.args.get('dd', type=str)
-    if not all([yy, mm, dd]):# 检查是否缺少参数
+    if not all([yy, mm, dd]):  # 检查是否缺少参数
         response = jsonify({"error": "missing parameters"})
         response.status_code = 400
         return response
 
-    if len(yy)!= 4 or len(mm)!= 2 or len(dd)!= 2:  # 检查参数格式是否正确
+    if len(yy) != 4 or len(mm) != 2 or len(dd) != 2:  # 检查参数格式是否正确
         response = jsonify({"error": "invalid parameters"})
         response.status_code = 400
         return response
     # 对输入的年月日进行转义，防止注入攻击
-    y=escape(yy)
-    m=escape(mm)
-    d=escape(dd)
+    y = escape(yy)
+    m = escape(mm)
+    d = escape(dd)
 
     # 将转义后的年月日拼接成日期字符串
     date_string = y + '-' + m + '-' + d
@@ -78,6 +95,7 @@ def user_page():
     response.status_code = 404
     return response
 
+
 @app.route('/api/search/<keyword>')
 def search(keyword):
     """
@@ -90,7 +108,7 @@ def search(keyword):
     - 返回一个包含搜索结果的列表（无结果则返回空列表）
     """
     page = request.args.get('page', type=int, default=1)
-    keyword=escape(keyword)  # 转义关键词，防止注入攻击
+    keyword = escape(keyword)  # 转义关键词，防止注入攻击
 
     res = []  # 初始化搜索结果列表
 
@@ -121,6 +139,7 @@ def search(keyword):
         return response
 
     return res  # 返回搜索结果列表
+
 
 @app.route('/api/query/')
 def query():
@@ -158,6 +177,7 @@ def query():
 
     return jsonify(res)  # 返回搜索结果列表
 
+
 @app.route('/api/list')
 def list():
     """
@@ -170,6 +190,7 @@ def list():
         data = json.load(f)
 
     return jsonify(data)  # 返回日报列表
+
 
 @app.route('/api/latest')
 def latest():
@@ -189,6 +210,25 @@ def latest():
         data = json.load(f)
 
     return jsonify(data)  # 返回最新日报数据
+
+
+@app.route('/api/redstonesearch')
+def redstonesearch():
+    """
+    红石图寻
+    :return:
+    """
+
+    image = asyncio_wrapper(rssget.get())
+
+    img_io = io.BytesIO()
+    image.save(img_io, 'PNG')
+    img_io.seek(0)
+
+    # 返回一个 Response 对象，包含图像的字节流
+    return Response(img_io, mimetype='image/png')
+
+
 @app.route('/', methods=['GET'])
 def index():
     """
@@ -196,9 +236,11 @@ def index():
     """
     return send_file(pages_dir / 'index.html')
 
+
 @app.route("/<path:filename>", methods=['GET'])
 def res(filename):
     directory = f"{pages_dir}"  # 假设在当前目录
     return send_from_directory(directory, filename, as_attachment=False)
 
-app.run(ssl_context='adhoc')
+
+app.run(debug=True)

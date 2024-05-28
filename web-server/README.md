@@ -60,6 +60,12 @@
 返回值:
 - 一个包含最新一期日报的JSON响应。
 
+### @app.route('/api/redstonesearch')
+
+红石图寻小游戏。
+返回值:
+- 一个随机红石图片。
+
 ### @app.route('/', methods=['GET'])
 
 主页。

@@ -1,4 +1,10 @@
 bilibili-api-python
-tqdm
-Flask
+tqdm~=4.66.2
+Flask~=3.0.2
 flask_cors
+pillow~=10.2.0
+requests~=2.31.0
+MarkupSafe~=2.1.5
+opencv-python~=4.9.0.80
+httpx~=0.26.0
+Levenshtein~=0.25.1

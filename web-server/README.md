@@ -66,6 +66,15 @@
 返回值:
 - 一个随机红石图片。
 
+### @app.route('/api/redstonesearch/test')
+
+用于红石图寻的成绩测试。
+参数:
+- source: 第一个视频
+- target: 第二个视频
+返回值:
+- 一个JSON响应，包含测试结果(两个红石视频的相似度)。
+
 ### @app.route('/', methods=['GET'])
 
 主页。

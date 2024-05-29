@@ -1,11 +1,17 @@
-import os, asyncio
+import asyncio
+import io
+import json
+import os
+import time
 from pathlib import Path
-from flask import send_file, send_from_directory, redirect, Response
+
 from flask import Flask, jsonify, request
+from flask import send_file, send_from_directory, redirect, Response
 from flask_cors import CORS
 from markupsafe import escape
-import json, io
+
 from redstonesearch import main as rssget
+from redstonesearch import test as rsstet
 
 os.chdir(Path(__file__).parent.parent)  # 切换工作目录到仓库根目录
 pages_dir = Path.cwd().parent / "frontend"  # 前端页面目录
@@ -18,6 +24,15 @@ CORS(app)
 
 # 异步任务运行函数
 def asyncio_wrapper(job):
+    """
+    异步任务运行函数，用于运行异步任务。
+
+    参数:
+    :param job:
+        异步任务函数。
+    :return:
+        异步任务函数的运行结果。
+    """
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError as ex:
@@ -218,17 +233,63 @@ def redstonesearch():
     红石图寻
     :return:
     """
+    # 主函数
+    def main():
+        # 调用异步函数获取图片
+        image = asyncio_wrapper(rssget.get())
 
-    image = asyncio_wrapper(rssget.get())
+        # 保存图片到内存
+        img_io = io.BytesIO()
+        image.save(img_io, 'PNG')
+        img_io.seek(0)
 
-    img_io = io.BytesIO()
-    image.save(img_io, 'PNG')
-    img_io.seek(0)
+        # 标记当前请求并未进行
+        with open('tempconfig.json', 'r') as f:
+            config = json.load(f)
+            config['is_running']['redstonesearch'] = False
+            with open('tempconfig.json', 'w') as f:
+                json.dump(config, f)
 
-    # 返回一个 Response 对象，包含图像的字节流
-    return Response(img_io, mimetype='image/png')
+        # 返回一个 Response 对象，包含图像的字节流
+        return Response(img_io, mimetype='image/png')
 
+    # 强制执行
+    if request.args.get('force', type=int) == 1:
+        time.sleep(100)
+        main()
 
+    # 检测是否有其他请求正在进行
+    with open('tempconfig.json', 'r') as f:
+        config = json.load(f)
+        if config['is_running']['redstonesearch']:
+            response = '错误：其他请求正在进行，请稍后再试。或强制执行，但因带宽原因，速度可能受限。'
+            response.status_code = 400
+            return response
+
+    # 标记当前请求正在进行
+    with open('tempconfig.json', 'r') as f:
+        config = json.load(f)
+        config['is_running']['redstonesearch'] = True
+        with open('tempconfig.json', 'w') as f:
+            json.dump(config, f)
+
+    main()
+
+@app.route('/api/redstonesearch/test')
+def redstonesearch_test():
+    """
+    红石图寻相似度测试
+    :return:
+    返回值:
+    返回源视频和目标视频的相似度。
+    """
+    # 获取参数
+    source_url = request.args.get('source')
+    target_url = request.args.get('target')
+
+    return str(rsstet.test(source_url, target_url))
+
+    # 主函数
 @app.route('/', methods=['GET'])
 def index():
     """

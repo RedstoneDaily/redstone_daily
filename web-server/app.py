@@ -254,9 +254,12 @@ def redstonesearch():
         return Response(img_io, mimetype='image/png')
 
     # 强制执行
-    if request.args.get('force', type=int) == 1:
-        time.sleep(100)
-        main()
+    try:
+        if request.args.get('force', type=int) == 1:
+            time.sleep(100)
+            main()
+    except:
+        pass
 
     # 检测是否有其他请求正在进行
     with open('tempconfig.json', 'r') as f:

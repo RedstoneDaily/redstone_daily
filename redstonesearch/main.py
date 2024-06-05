@@ -142,7 +142,7 @@ async def get():
         # 视频时长限制
         v = video.Video(aid = aid)
         info = await v.get_info()
-        if info['duration'] >= 600:
+        if info['duration'] >= 240:
             await choose_video()
             return
         # 获取视频

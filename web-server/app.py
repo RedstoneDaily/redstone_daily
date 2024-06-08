@@ -44,19 +44,16 @@ def asyncio_wrapper(job):
         loop.close()
 
 
-# 把https请求重定向到http请求
 @app.before_request
 def before_request():
+    # 把https请求重定向到http请求
     if request.url.startswith('https://'):
         url = request.url.replace('https://', 'http://', 1)
         code = 301
         return redirect(url, code=code)
-
-
-# 重定向字体文件, 防止测试服被卡速度
-@app.route('/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf')
-def redirect_font():
-    return redirect('https://redstonedaily.top/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf', code=302)
+    # 重定向字体文件, 防止非正式服被卡速度
+    if request.path == '/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf' and request.host != 'redstonedaily.top':
+        return redirect('https://redstonedaily.top/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf', code=302)
 
 
 @app.route('/api/daily')

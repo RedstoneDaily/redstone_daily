@@ -293,18 +293,30 @@ def redstonesearch_test():
 
     return str(rsstet.test(source_url, target_url))
 
-    # 主函数
+# Vue页面，放在/vue下
+@app.route('/vue', methods=['GET'])
+def index():
+    """
+    也是首页
+    """
+    return send_file(pages_dir / 'vue' / 'index.html')
+
+@app.route("/vue/<path:filename>", methods=['GET'])
+def res(filename):
+    directory = f"{pages_dir / 'vue'}"
+    return send_from_directory(directory, filename, as_attachment=False)
+
+# Flutter页面，放在/下
 @app.route('/', methods=['GET'])
 def index():
     """
     首页
     """
-    return send_file(pages_dir / 'index.html')
-
+    return send_file(pages_dir / 'flutter' / 'index.html')
 
 @app.route("/<path:filename>", methods=['GET'])
 def res(filename):
-    directory = f"{pages_dir}"  # 假设在当前目录
+    directory = f"{pages_dir / 'flutter'}"
     return send_from_directory(directory, filename, as_attachment=False)
 
 

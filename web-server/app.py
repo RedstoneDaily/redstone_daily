@@ -53,10 +53,10 @@ def before_request():
         return redirect(url, code=code)
 
 
-# 重定向字体文件
+# 重定向字体文件, 防止测试服被卡速度
 @app.route('/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf')
 def redirect_font():
-    return redirect('https://aka.redstonedaily.top/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf', code=302)
+    return redirect('https://redstonedaily.top/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf', code=302)
 
 
 @app.route('/api/daily')

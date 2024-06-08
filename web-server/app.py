@@ -295,14 +295,14 @@ def redstonesearch_test():
 
 # Vue页面，放在/vue下
 @app.route('/vue', methods=['GET'])
-def index():
+def index_vue():
     """
     也是首页
     """
     return send_file(pages_dir / 'vue' / 'index.html')
 
 @app.route("/vue/<path:filename>", methods=['GET'])
-def res(filename):
+def res_vue(filename):
     directory = f"{pages_dir / 'vue'}"
     return send_from_directory(directory, filename, as_attachment=False)
 

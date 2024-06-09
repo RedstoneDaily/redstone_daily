@@ -217,7 +217,7 @@ def latest():
     # 打开并读取数据列表文件
     with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
-        data.sort(key=lambda x: x['date'], reverse=True)  # 按日期排序
+        data.sort(key=lambda x: x['date'])  # 按日期排序
 
     latest_date = data[-1]["date"]  # 获取最新日报日期
 

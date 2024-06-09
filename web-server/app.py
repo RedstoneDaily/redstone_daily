@@ -44,19 +44,16 @@ def asyncio_wrapper(job):
         loop.close()
 
 
-# 把https请求重定向到http请求
 @app.before_request
 def before_request():
+    # 把https请求重定向到http请求
     if request.url.startswith('https://'):
         url = request.url.replace('https://', 'http://', 1)
         code = 301
         return redirect(url, code=code)
-
-
-# 重定向字体文件
-@app.route('/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf')
-def redirect_font():
-    return redirect('https://aka.redstonedaily.top/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf', code=302)
+    # 重定向字体文件, 防止非正式服被卡速度
+    if request.path == '/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf' and request.host != 'redstonedaily.top':
+        return redirect('https://redstonedaily.top/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf', code=302)
 
 
 @app.route('/api/daily')
@@ -293,18 +290,30 @@ def redstonesearch_test():
 
     return str(rsstet.test(source_url, target_url))
 
-    # 主函数
+# Vue页面，放在/vue下
+@app.route('/vue', methods=['GET'])
+def index_vue():
+    """
+    也是首页
+    """
+    return send_file(pages_dir / 'vue' / 'index.html')
+
+@app.route("/vue/<path:filename>", methods=['GET'])
+def res_vue(filename):
+    directory = f"{pages_dir / 'vue'}"
+    return send_from_directory(directory, filename, as_attachment=False)
+
+# Flutter页面，放在/下
 @app.route('/', methods=['GET'])
 def index():
     """
     首页
     """
-    return send_file(pages_dir / 'index.html')
-
+    return send_file(pages_dir / 'flutter' / 'index.html')
 
 @app.route("/<path:filename>", methods=['GET'])
 def res(filename):
-    directory = f"{pages_dir}"  # 假设在当前目录
+    directory = f"{pages_dir / 'flutter'}"
     return send_from_directory(directory, filename, as_attachment=False)
 
 

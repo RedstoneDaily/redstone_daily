@@ -52,8 +52,8 @@ def before_request():
         code = 301
         return redirect(url, code=code)
     # 重定向字体文件, 防止非正式服被卡速度
-    if request.path == '/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf' and request.host != 'redstonedaily.top':
-        return redirect('https://redstonedaily.top/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf', code=302)
+    if request.path == '/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf':
+        return redirect('https://image-cdn-1306022435.file.myqcloud.com/redstonedaily/assets/FontquanXinYiGuanHeiTi-Regular.ttf', code=302)
 
 
 @app.route('/api/daily')

@@ -15,6 +15,9 @@ from redstonesearch import test as rsstet
 
 os.chdir(Path(__file__).parent.parent)  # 切换工作目录到仓库根目录
 pages_dir = Path.cwd().parent / "frontend"  # 前端页面目录
+pages_flutter_dir = pages_dir / "flutter"  # Flutter页面目录
+# pages_flutter_dir = pages_dir / "flutter" / "build" / "web" # Flutter页面目录(本地开发环境 本地调试时注释掉上行、解除注释本行)
+pages_vue_dir = pages_dir / "vue"  # Vue页面目录
 
 app = Flask(__name__)
 # CORS(app, origins=["http://localhost:18042"])
@@ -296,12 +299,11 @@ def index_vue():
     """
     也是首页
     """
-    return send_file(pages_dir / 'vue' / 'index.html')
+    return send_file(pages_vue_dir / 'index.html')
 
 @app.route("/vue/<path:filename>", methods=['GET'])
 def res_vue(filename):
-    directory = f"{pages_dir / 'vue'}"
-    return send_from_directory(directory, filename, as_attachment=False)
+    return send_from_directory(pages_vue_dir, filename, as_attachment=False)
 
 # Flutter页面，放在/下
 @app.route('/', methods=['GET'])
@@ -309,12 +311,11 @@ def index():
     """
     首页
     """
-    return send_file(pages_dir / 'flutter' / 'index.html')
+    return send_file(pages_flutter_dir / 'index.html')
 
 @app.route("/<path:filename>", methods=['GET'])
 def res(filename):
-    directory = f"{pages_dir / 'flutter'}"
-    return send_from_directory(directory, filename, as_attachment=False)
+    return send_from_directory(pages_flutter_dir, filename, as_attachment=False)
 
 
 app.run(debug=True)

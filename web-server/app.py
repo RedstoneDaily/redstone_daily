@@ -18,7 +18,6 @@ from pymongo import MongoClient
 client = MongoClient()
 db = client['redstone_daily']
 
-original = db['original']  # 原始数据
 daily = db['daily']  # 今日数据
 
 os.chdir(Path(__file__).parent.parent)  # 切换工作目录到仓库根目录
@@ -210,11 +209,22 @@ def list():
     返回值:
     - 如果找到日报列表，则返回一个包含日报列表的JSON响应。
     """
-    # 打开并读取数据列表文件
-    with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    # 打开并读取数据库
 
-    return jsonify(data)  # 返回日报列表
+    data = daily.find()
+
+    if data is None:
+        # 如果未找到日报列表，则返回404错误
+        response = jsonify({"error": "not found"})
+        response.status_code = 404
+        return response
+
+    res = []  # 初始化结果列表
+
+    for i in data:
+        res.append({"date": i['title'], "title": i['content'][0]['title']})  # 取出日期字段和标题字段
+
+    return jsonify(res)  # 返回日报列表
 
 
 @app.route('/api/latest')
@@ -224,18 +234,18 @@ def latest():
     返回值:
     返回一个包含最新日报的JSON响应。
     """
-    # 打开并读取数据列表文件
-    with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
-        data.sort(key=lambda x: x['date'])  # 按日期排序
+    # 打开并读取数据库
 
-    latest_date = data[-1]["date"]  # 获取最新日报日期
+    data = daily.find().sort('_id', -1).limit(1).next()
 
-    # 打开并读取最新日报数据文件
-    with open('engine/data/database/' + latest_date + '.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    if data is None:
+        # 如果未找到最新日报，则返回404错误
+        response = jsonify({"error": "not found"})
+        response.status_code = 404
+        return response
 
-    return jsonify(data)  # 返回最新日报数据
+    del data['_id']  # 删除MongoDB自动添加的_id字段
+    return jsonify(data)  # 返回最新日报
 
 
 @app.route('/api/redstonesearch')

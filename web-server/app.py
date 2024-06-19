@@ -11,7 +11,16 @@ from flask_cors import CORS
 from markupsafe import escape
 
 from redstonesearch import main as rssget
-from redstonesearch import test as rsstet
+from redstonesearch import test as rsstest
+from pymongo import MongoClient
+
+# 连接数据库
+client = MongoClient()
+db = client['redstone_daily']
+
+original = db['original']  # 原始数据
+daily = db['daily']  # 今日数据
+daily_list = db['daily_list']  # 数据列表
 
 os.chdir(Path(__file__).parent.parent)  # 切换工作目录到仓库根目录
 pages_dir = Path.cwd().parent / "frontend"  # 前端页面目录
@@ -46,6 +55,7 @@ def asyncio_wrapper(job):
     finally:
         loop.close()
 
+
 # 预处理-重定向
 @app.before_request
 def before_request():
@@ -54,7 +64,7 @@ def before_request():
         url = request.url.replace('https://', 'http://', 1)
         code = 301
         return redirect(url, code=code)
-    
+
     # 读取并解析image-cdn-list.json文件
     with open(Path(__file__).parent / 'image-cdn-list.json', 'r') as f:
         cdn_dict = json.load(f)
@@ -97,17 +107,22 @@ def user_page():
     # 将转义后的年月日拼接成日期字符串
     date_string = y + '-' + m + '-' + d
 
-    # 打开并读取数据列表文件
-    with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    # 打开并读取数据库
+
+    data = daily_list.find_one()  # 获取数据列表
+    print(data)
 
     # 遍历数据列表，查找匹配的日期
     for i in data:
         if i["date"] == date_string:
-            # 打开并读取对应日期的数据文件
-            with open('engine/data/database/' + date_string + '.json', 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                return jsonify(data)  # 找到匹配日期，返回数据
+            # 打开并读取对应日期的数据
+            res = daily.find_one({"date": date_string})
+            if res is None:
+                response = jsonify({"error": "not found"})
+                response.status_code = 404
+                return response
+            else:
+                return jsonify(res)
 
     # 未找到匹配日期，返回错误信息
     response = jsonify({"error": "not found"})
@@ -238,6 +253,7 @@ def redstonesearch():
     红石图寻
     :return:
     """
+
     # 主函数
     def main():
         # 调用异步函数获取图片
@@ -283,6 +299,7 @@ def redstonesearch():
 
     main()
 
+
 @app.route('/api/redstonesearch/test')
 def redstonesearch_test():
     """
@@ -295,7 +312,8 @@ def redstonesearch_test():
     source_url = request.args.get('source')
     target_url = request.args.get('target')
 
-    return str(rsstet.test(source_url, target_url))
+    return str(rsstest.test(source_url, target_url))
+
 
 # Vue页面，放在/vue下
 @app.route('/vue', methods=['GET'])
@@ -305,9 +323,11 @@ def index_vue():
     """
     return send_file(pages_vue_dir / 'index.html')
 
+
 @app.route("/vue/<path:filename>", methods=['GET'])
 def res_vue(filename):
     return send_from_directory(pages_vue_dir, filename, as_attachment=False)
+
 
 # Flutter页面，放在/下
 @app.route('/', methods=['GET'])
@@ -316,6 +336,7 @@ def index():
     首页
     """
     return send_file(pages_flutter_dir / 'index.html')
+
 
 @app.route("/<path:filename>", methods=['GET'])
 def res(filename):

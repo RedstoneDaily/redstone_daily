@@ -253,22 +253,6 @@ def write_video_info(video_info_list: list[dict]):
     time_2 = time.time()
     print('写入数据库已完成,耗时', time_2 - time_1, '秒')
 
-def update_database_list():
-
-    # 获取今日数据
-
-    today_data = daily.find_one({"title": time.strftime("%Y-%m-%d", time.localtime())})
-    if today_data is None:
-        raise ValueError("今日数据不存在")
-
-    # 获取头条数据
-
-    head = today_data['content'][1]['title']
-
-    # 写入数据库
-
-    daily_list.insert_one({"date": time.strftime("%Y-%m-%d", time.localtime()), "title": head})
-
 
 #     update_database_list()
 

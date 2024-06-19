@@ -20,7 +20,11 @@ daily_list = db['daily_list']  # 数据列表
 def data_filter(str):
     """
     过滤数据 防止注入
-    :param str:
+    :param str: 待过滤的字符串
+    :return: 过滤后的字符串
+    """
+
+    return str.replace("'", '').replace('"', '').replace('$', '').replace('{', '').replace('}', '').replace('regex', '')
 
 def filter_video(title, description, tags, weight_map):
     """
@@ -202,8 +206,8 @@ def get_today_video(config, weight_map):
 def transform_video_item(video_item: dict) -> dict:
     return {
         "type": "video",
-        "title": video_item['title'],
-        "description": video_item['description'],
+        "title": data_filter(video_item['title']),  # 使用过滤函数过滤数据
+        "description": data_filter(video_item['description']),
         "url": video_item['url'],
         "cover_url": video_item['cover_url'],
         "pubdate": video_item['pubdate'],
@@ -218,7 +222,7 @@ def transform_video_item(video_item: dict) -> dict:
             "score": video_item['score']
         },
         "author": {
-            "name": video_item['author'],
+            "name": data_filter(video_item['author']),
             "upic": video_item['upic']
         }
     }

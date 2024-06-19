@@ -15,6 +15,9 @@ from redstonesearch import test as rsstet
 
 os.chdir(Path(__file__).parent.parent)  # 切换工作目录到仓库根目录
 pages_dir = Path.cwd().parent / "frontend"  # 前端页面目录
+pages_flutter_dir = pages_dir / "flutter"  # Flutter页面目录
+# pages_flutter_dir = pages_dir / "flutter" / "build" / "web" # Flutter页面目录(本地开发环境 本地调试时注释掉上行、解除注释本行)
+pages_vue_dir = pages_dir / "vue"  # Vue页面目录
 
 app = Flask(__name__)
 # CORS(app, origins=["http://localhost:18042"])
@@ -43,7 +46,7 @@ def asyncio_wrapper(job):
     finally:
         loop.close()
 
-
+# 预处理-重定向
 @app.before_request
 def before_request():
     # 把https请求重定向到http请求
@@ -51,9 +54,13 @@ def before_request():
         url = request.url.replace('https://', 'http://', 1)
         code = 301
         return redirect(url, code=code)
-    # 重定向字体文件, 防止非正式服被卡速度
-    if request.path == '/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf':
-        return redirect('https://image-cdn-1306022435.file.myqcloud.com/redstonedaily/assets/FontquanXinYiGuanHeiTi-Regular.ttf', code=302)
+    
+    # 读取并解析image-cdn-list.json文件
+    with open(Path(__file__).parent / 'image-cdn-list.json', 'r') as f:
+        cdn_dict = json.load(f)
+    # 重定向由image-cdn托管的文件
+    if request.path in cdn_dict:
+        return redirect(cdn_dict[request.path], code=302)
 
 
 @app.route('/api/daily')
@@ -296,12 +303,11 @@ def index_vue():
     """
     也是首页
     """
-    return send_file(pages_dir / 'vue' / 'index.html')
+    return send_file(pages_vue_dir / 'index.html')
 
 @app.route("/vue/<path:filename>", methods=['GET'])
 def res_vue(filename):
-    directory = f"{pages_dir / 'vue'}"
-    return send_from_directory(directory, filename, as_attachment=False)
+    return send_from_directory(pages_vue_dir, filename, as_attachment=False)
 
 # Flutter页面，放在/下
 @app.route('/', methods=['GET'])
@@ -309,12 +315,11 @@ def index():
     """
     首页
     """
-    return send_file(pages_dir / 'flutter' / 'index.html')
+    return send_file(pages_flutter_dir / 'index.html')
 
 @app.route("/<path:filename>", methods=['GET'])
 def res(filename):
-    directory = f"{pages_dir / 'flutter'}"
-    return send_from_directory(directory, filename, as_attachment=False)
+    return send_from_directory(pages_flutter_dir, filename, as_attachment=False)
 
 
 app.run(debug=True)

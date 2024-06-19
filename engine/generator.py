@@ -7,7 +7,14 @@ from datetime import datetime
 
 from bilibili_api import sync, video as bilivideo
 from tqdm import tqdm
+from pymongo import MongoClient
 
+# 连接数据库
+client = MongoClient()
+db = client['redstone_daily']
+
+original = db['original']  # 原始数据
+daily = db['daily']        # 今日数据
 
 def filter_video(title, description, tags, weight_map):
     """

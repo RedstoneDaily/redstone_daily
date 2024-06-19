@@ -136,25 +136,28 @@ def search(keyword):
 
     res = []  # 初始化搜索结果列表
 
-    # 从json文件中加载数据库列表
-    with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    # 打开并读取数据库
+
+    data = daily.find()
+
+    if data is None:
+        # 如果未找到最新日报，则返回404错误
+        response = jsonify({"error": "not found"})
+        response.status_code = 404
+        return response
 
     count = 0  # 记录搜索结果数量
     # 遍历数据库列表，加载每个数据库的视频信息
-    for i in data:
-        with open('engine/data/database/' + i + '.json', 'r', encoding='utf-8') as f:
-            video_data = json.load(f)
-
-            # 在每个视频的信息中搜索关键词
-            for j in video_data['content']:
-                if keyword in j['title'] or keyword in j['description']:
-                    count += 1  # 记录搜索结果数量
-                    if count <= (page - 1) * 30:  # 如果当前搜索结果数量小于当前页码乘以每页显示数量，则跳过当前视频
-                        continue
-                    elif count > page * 30:  # 如果当前搜索结果数量大于等于当前页码乘以每页显示数量，则跳出循环
-                        break
-                    res.append(j)  # 如果关键词匹配，则将视频信息添加到结果列表
+    for video_data in data:
+        # 在每个视频的信息中搜索关键词
+        for j in video_data['content']:
+            if keyword in j['title'] or keyword in j['description']:
+                count += 1  # 记录搜索结果数量
+                if count <= (page - 1) * 30:  # 如果当前搜索结果数量小于当前页码乘以每页显示数量，则跳过当前视频
+                    continue
+                elif count > page * 30:  # 如果当前搜索结果数量大于等于当前页码乘以每页显示数量，则跳出循环
+                    break
+                res.append(j)  # 如果关键词匹配，则将视频信息添加到结果列表
 
     # 如果没有找到匹配的视频信息，则返回404错误
     if len(res) == 0:

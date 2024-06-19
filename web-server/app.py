@@ -171,24 +171,38 @@ def query():
     根据给定的起止日期，返回对应日期的数据。
 
     参数:
-    - start: 起始日期，字符串格式
-    - stop: 结束日期，字符串格式
+    - start: 起始日期，字符串yyyy-mm-dd格式
+    - stop: 结束日期，字符串yyyy-mm-dd格式
 
     返回值:
     - 如果找到对应日期的数据，则以JSON格式返回数据。
     - 如果未找到对应日期的数据，则返回一个包含错误信息的JSON，状态码为404。
     """
+    # 获取参数
     start = request.args.get('start', type=str)
     stop = request.args.get('stop', type=str)
 
+    # 处理参数
     if stop is None:
         stop = start
 
+    # 处理参数格式
     start_date = start.split('-')
     stop_date = stop.split('-')
-    # 打开并读取数据列表文件
-    with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    # 打开并读取数据库
+
+    database = daily.find()
+
+    if database is None:
+        # 如果未找到日报列表，则返回404错误
+        response = jsonify({"error": "not found"})
+        response.status_code = 404
+        return response
+
+    data = []  # 初始化数据列表
+
+    for i in database:
+        data.append(i['title'])  # 取出日期字段
 
     res = []  # 初始化搜索结果列表
     # 遍历数据列表，查找匹配的日期

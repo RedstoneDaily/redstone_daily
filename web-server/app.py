@@ -20,7 +20,6 @@ db = client['redstone_daily']
 
 original = db['original']  # 原始数据
 daily = db['daily']  # 今日数据
-daily_list = db['daily_list']  # 数据列表
 
 os.chdir(Path(__file__).parent.parent)  # 切换工作目录到仓库根目录
 pages_dir = Path.cwd().parent / "frontend"  # 前端页面目录
@@ -109,25 +108,17 @@ def user_page():
 
     # 打开并读取数据库
 
-    data = daily_list.find_one()  # 获取数据列表
+    data = daily.find_one({'title': date_string})  # 获取数据列表
     print(data)
 
-    # 遍历数据列表，查找匹配的日期
-    for i in data:
-        if i["date"] == date_string:
-            # 打开并读取对应日期的数据
-            res = daily.find_one({"date": date_string})
-            if res is None:
-                response = jsonify({"error": "not found"})
-                response.status_code = 404
-                return response
-            else:
-                return jsonify(res)
+    if data is None:
+        # 如果未找到对应日期的数据，则返回404错误
+        response = jsonify({"error": "not found"})
+        response.status_code = 404
+        return response
 
-    # 未找到匹配日期，返回错误信息
-    response = jsonify({"error": "not found"})
-    response.status_code = 404
-    return response
+    del data['_id']  # 删除MongoDB自动添加的_id字段
+    return jsonify(data)  # 返回数据列表
 
 
 @app.route('/api/search/<keyword>')

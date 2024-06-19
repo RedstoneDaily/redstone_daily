@@ -15,7 +15,6 @@ db = client['redstone_daily']
 
 original = db['original']  # 原始数据
 daily = db['daily']        # 今日数据
-daily_list = db['daily_list']  # 数据列表
 
 def data_filter(str):
     """

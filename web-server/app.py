@@ -46,7 +46,7 @@ def asyncio_wrapper(job):
     finally:
         loop.close()
 
-
+# 预处理-重定向
 @app.before_request
 def before_request():
     # 把https请求重定向到http请求
@@ -54,9 +54,13 @@ def before_request():
         url = request.url.replace('https://', 'http://', 1)
         code = 301
         return redirect(url, code=code)
-    # 重定向字体文件, 防止非正式服被卡速度
-    if request.path == '/assets/assets/fonts/FontquanXinYiGuanHeiTi-Regular.ttf':
-        return redirect('https://image-cdn-1306022435.file.myqcloud.com/redstonedaily/assets/FontquanXinYiGuanHeiTi-Regular.ttf', code=302)
+    
+    # 读取并解析image-cdn-list.json文件
+    with open(Path(__file__).parent / 'image-cdn-list.json', 'r') as f:
+        cdn_dict = json.load(f)
+    # 重定向由image-cdn托管的文件
+    if request.path in cdn_dict:
+        return redirect(cdn_dict[request.path], code=302)
 
 
 @app.route('/api/daily')

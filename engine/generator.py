@@ -15,6 +15,12 @@ db = client['redstone_daily']
 
 original = db['original']  # 原始数据
 daily = db['daily']        # 今日数据
+daily_list = db['daily_list']  # 数据列表
+
+def data_filter(str):
+    """
+    过滤数据 防止注入
+    :param str:
 
 def filter_video(title, description, tags, weight_map):
     """
@@ -236,46 +242,28 @@ def write_video_info(video_info_list: list[dict]):
     filtered = all.copy()
     filtered["content"] = list(map(transform_video_item, filtered_video_info_list))
 
-    # 创建文件目录
-    if not os.path.exists('./engine/data/database/'):
-        os.makedirs('./engine/data/database/')
-
-    # 将文件字典写入Json文件
-    _filename = './engine/data/database/' + \
-        time.strftime("%Y-%m-%d", time.localtime())
-    
-    with open(_filename + '.json', 'w', encoding='utf-8') as f:
-        f.write(json.dumps(filtered, ensure_ascii=False, indent=4))
-        
-    with open(_filename + '-original.json', 'w', encoding='utf-8') as f:
-        f.write(json.dumps(all, ensure_ascii=False, indent=4))
+    # 写入数据库
+    original.insert_one(all)  # 写入原始数据
+    daily.insert_one(filtered)  # 写入今日数据
 
     time_2 = time.time()
-    print('写入文件已完成,耗时', time_2 - time_1, '秒')
+    print('写入数据库已完成,耗时', time_2 - time_1, '秒')
 
 def update_database_list():
 
-    # 判断日期是否有效的工具函数
-    def is_valid_date(date):
-        try:
-            datetime.strptime(date, "%Y-%m-%d")
-            return True
-        except ValueError:
-            return False
-    
-    # 写模式打开数据库列表 ./data/database_list.json，如没有则创建
-    with open('./engine/data/database_list.json', 'w', encoding='utf-8') as f:
-        # 搜索./data/database/目录下的所有json文件
-        file_list = []
-        for file in os.listdir('./engine/data/database/'):
-            if file.endswith('.json') and is_valid_date(file[:-5]):
-                with open('./engine/data/database/' + file, 'r', encoding='utf-8') as f2:
-                    # 获取标题
-                    title = json.load(f2)['content'][0]['title']
-                file_list.append({"title": title, "date": file[:-5]})
-    
-        # 将文件列表以最小化格式写入数据库列表文件
-        f.write(json.dumps(file_list, ensure_ascii=False, separators=(',', ':'), sort_keys=True))
+    # 获取今日数据
+
+    today_data = daily.find_one({"title": time.strftime("%Y-%m-%d", time.localtime())})
+    if today_data is None:
+        raise ValueError("今日数据不存在")
+
+    # 获取头条数据
+
+    head = today_data['content'][1]['title']
+
+    # 写入数据库
+
+    daily_list.insert_one({"date": time.strftime("%Y-%m-%d", time.localtime()), "title": head})
 
 
 #     update_database_list()

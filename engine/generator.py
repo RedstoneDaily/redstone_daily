@@ -84,7 +84,6 @@ def filter_video(title, description, tags, weight_map):
             weight *= i['tags'][1]
 
     return weight
-#
 
 # 计算视频综合得分
 def calc_score(like, view, favorite, coin, share, review):

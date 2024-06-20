@@ -9,3 +9,4 @@ opencv-python~=4.9.0.80
 httpx~=0.26.0
 Levenshtein~=0.25.1
 numpy<2
+pymongo~=4.7.3

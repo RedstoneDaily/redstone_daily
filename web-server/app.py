@@ -54,13 +54,19 @@ def before_request():
         url = request.url.replace('https://', 'http://', 1)
         code = 301
         return redirect(url, code=code)
-    
+
     # 读取并解析image-cdn-list.json文件
-    with open(Path(__file__).parent / 'image-cdn-list.json', 'r') as f:
+    cdn_dict_path = Path(__file__).parent / 'image-cdn-list.json'
+    with cdn_dict_path.open('r') as f:
         cdn_dict = json.load(f)
+    
     # 重定向由image-cdn托管的文件
     if request.path in cdn_dict:
-        return redirect(cdn_dict[request.path], code=302)
+        cdn_url = cdn_dict[request.path]
+        # 构建响应对象并设置头信息
+        response = redirect(cdn_url, code=302)
+        response.headers['Referer'] = 'https://redstonedaily.top'  # 设置为你希望的 Referer
+        return response
 
 
 @app.route('/api/daily')

@@ -22,8 +22,8 @@ daily = db['daily']  # 今日数据
 
 os.chdir(Path(__file__).parent.parent)  # 切换工作目录到仓库根目录
 pages_dir = Path.cwd().parent / "frontend"  # 前端页面目录
-pages_flutter_dir = pages_dir / "flutter"  # Flutter页面目录
-# pages_flutter_dir = pages_dir / "flutter" / "build" / "web" # Flutter页面目录(本地开发环境 本地调试时注释掉上行、解除注释本行)
+# pages_flutter_dir = pages_dir / "flutter"  # Flutter页面目录
+pages_flutter_dir = pages_dir / "flutter" / "build" / "web" # Flutter页面目录(本地开发环境 本地调试时注释掉上行、解除注释本行)
 pages_vue_dir = pages_dir / "vue"  # Vue页面目录
 
 app = Flask(__name__)
@@ -64,11 +64,17 @@ def before_request():
         return redirect(url, code=code)
 
     # 读取并解析image-cdn-list.json文件
-    with open(Path(__file__).parent / 'image-cdn-list.json', 'r') as f:
+    cdn_dict_path = Path(__file__).parent / 'image-cdn-list.json'
+    with cdn_dict_path.open('r') as f:
         cdn_dict = json.load(f)
+    
     # 重定向由image-cdn托管的文件
     if request.path in cdn_dict:
-        return redirect(cdn_dict[request.path], code=302)
+        cdn_url = cdn_dict[request.path]
+        # 构建响应对象并设置头信息
+        response = redirect(cdn_url, code=302)
+        response.headers['Referer'] = 'https://redstonedaily.top'  # 设置为你希望的 Referer
+        return response
 
 
 @app.route('/api/daily')

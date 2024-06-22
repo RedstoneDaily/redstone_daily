@@ -14,9 +14,8 @@ from redstonesearch import main as rssget
 from redstonesearch import test as rsstet
 
 os.chdir(Path(__file__).parent.parent)  # 切换工作目录到仓库根目录
-pages_dir = Path.cwd().parent / "frontend"  # 前端页面目录
-pages_flutter_dir = pages_dir / "flutter"  # Flutter页面目录
-# pages_flutter_dir = pages_dir / "flutter" / "build" / "web" # Flutter页面目录(本地开发环境 本地调试时注释掉上行、解除注释本行)
+pages_dir = Path.cwd().parent / "frontend"  # 前端仓库目录
+pages_flutter_dir = pages_dir / "flutter" / "build" / "web" # Flutter页面目录
 pages_vue_dir = pages_dir / "vue"  # Vue页面目录
 
 app = Flask(__name__)

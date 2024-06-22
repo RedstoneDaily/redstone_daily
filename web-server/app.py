@@ -11,7 +11,14 @@ from flask_cors import CORS
 from markupsafe import escape
 
 from redstonesearch import main as rssget
-from redstonesearch import test as rsstet
+from redstonesearch import test as rsstest
+from pymongo import MongoClient
+
+# 连接数据库
+client = MongoClient()
+db = client['redstone_daily']
+
+daily = db['daily']  # 今日数据
 
 os.chdir(Path(__file__).parent.parent)  # 切换工作目录到仓库根目录
 pages_dir = Path.cwd().parent / "frontend"  # 前端仓库目录
@@ -45,6 +52,7 @@ def asyncio_wrapper(job):
     finally:
         loop.close()
 
+
 # 预处理-重定向
 @app.before_request
 def before_request():
@@ -53,13 +61,19 @@ def before_request():
         url = request.url.replace('https://', 'http://', 1)
         code = 301
         return redirect(url, code=code)
-    
+
     # 读取并解析image-cdn-list.json文件
-    with open(Path(__file__).parent / 'image-cdn-list.json', 'r') as f:
+    cdn_dict_path = Path(__file__).parent / 'image-cdn-list.json'
+    with cdn_dict_path.open('r') as f:
         cdn_dict = json.load(f)
+    
     # 重定向由image-cdn托管的文件
     if request.path in cdn_dict:
-        return redirect(cdn_dict[request.path], code=302)
+        cdn_url = cdn_dict[request.path]
+        # 构建响应对象并设置头信息
+        response = redirect(cdn_url, code=302)
+        response.headers['Referer'] = 'https://redstonedaily.top'  # 设置为你希望的 Referer
+        return response
 
 
 @app.route('/api/daily')
@@ -96,22 +110,19 @@ def user_page():
     # 将转义后的年月日拼接成日期字符串
     date_string = y + '-' + m + '-' + d
 
-    # 打开并读取数据列表文件
-    with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    # 打开并读取数据库
 
-    # 遍历数据列表，查找匹配的日期
-    for i in data:
-        if i["date"] == date_string:
-            # 打开并读取对应日期的数据文件
-            with open('engine/data/database/' + date_string + '.json', 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                return jsonify(data)  # 找到匹配日期，返回数据
+    data = daily.find_one({'title': date_string})  # 获取数据列表
+    print(data)
 
-    # 未找到匹配日期，返回错误信息
-    response = jsonify({"error": "not found"})
-    response.status_code = 404
-    return response
+    if data is None:
+        # 如果未找到对应日期的数据，则返回404错误
+        response = jsonify({"error": "not found"})
+        response.status_code = 404
+        return response
+
+    del data['_id']  # 删除MongoDB自动添加的_id字段
+    return jsonify(data)  # 返回数据列表
 
 
 @app.route('/api/search/<keyword>')
@@ -130,25 +141,28 @@ def search(keyword):
 
     res = []  # 初始化搜索结果列表
 
-    # 从json文件中加载数据库列表
-    with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    # 打开并读取数据库
+
+    data = daily.find()
+
+    if data is None:
+        # 如果未找到最新日报，则返回404错误
+        response = jsonify({"error": "not found"})
+        response.status_code = 404
+        return response
 
     count = 0  # 记录搜索结果数量
     # 遍历数据库列表，加载每个数据库的视频信息
-    for i in data:
-        with open('engine/data/database/' + i + '.json', 'r', encoding='utf-8') as f:
-            video_data = json.load(f)
-
-            # 在每个视频的信息中搜索关键词
-            for j in video_data['content']:
-                if keyword in j['title'] or keyword in j['description']:
-                    count += 1  # 记录搜索结果数量
-                    if count <= (page - 1) * 30:  # 如果当前搜索结果数量小于当前页码乘以每页显示数量，则跳过当前视频
-                        continue
-                    elif count > page * 30:  # 如果当前搜索结果数量大于等于当前页码乘以每页显示数量，则跳出循环
-                        break
-                    res.append(j)  # 如果关键词匹配，则将视频信息添加到结果列表
+    for video_data in data:
+        # 在每个视频的信息中搜索关键词
+        for j in video_data['content']:
+            if keyword in j['title'] or keyword in j['description']:
+                count += 1  # 记录搜索结果数量
+                if count <= (page - 1) * 30:  # 如果当前搜索结果数量小于当前页码乘以每页显示数量，则跳过当前视频
+                    continue
+                elif count > page * 30:  # 如果当前搜索结果数量大于等于当前页码乘以每页显示数量，则跳出循环
+                    break
+                res.append(j)  # 如果关键词匹配，则将视频信息添加到结果列表
 
     # 如果没有找到匹配的视频信息，则返回404错误
     if len(res) == 0:
@@ -165,24 +179,38 @@ def query():
     根据给定的起止日期，返回对应日期的数据。
 
     参数:
-    - start: 起始日期，字符串格式
-    - stop: 结束日期，字符串格式
+    - start: 起始日期，字符串yyyy-mm-dd格式
+    - stop: 结束日期，字符串yyyy-mm-dd格式
 
     返回值:
     - 如果找到对应日期的数据，则以JSON格式返回数据。
     - 如果未找到对应日期的数据，则返回一个包含错误信息的JSON，状态码为404。
     """
+    # 获取参数
     start = request.args.get('start', type=str)
     stop = request.args.get('stop', type=str)
 
+    # 处理参数
     if stop is None:
         stop = start
 
+    # 处理参数格式
     start_date = start.split('-')
     stop_date = stop.split('-')
-    # 打开并读取数据列表文件
-    with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    # 打开并读取数据库
+
+    database = daily.find()
+
+    if database is None:
+        # 如果未找到日报列表，则返回404错误
+        response = jsonify({"error": "not found"})
+        response.status_code = 404
+        return response
+
+    data = []  # 初始化数据列表
+
+    for i in database:
+        data.append(i['title'])  # 取出日期字段
 
     res = []  # 初始化搜索结果列表
     # 遍历数据列表，查找匹配的日期
@@ -203,11 +231,22 @@ def list():
     返回值:
     - 如果找到日报列表，则返回一个包含日报列表的JSON响应。
     """
-    # 打开并读取数据列表文件
-    with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    # 打开并读取数据库
 
-    return jsonify(data)  # 返回日报列表
+    data = daily.find()
+
+    if data is None:
+        # 如果未找到日报列表，则返回404错误
+        response = jsonify({"error": "not found"})
+        response.status_code = 404
+        return response
+
+    res = []  # 初始化结果列表
+
+    for i in data:
+        res.append({"date": i['title'], "title": i['content'][0]['title']})  # 取出日期字段和标题字段
+
+    return jsonify(res)  # 返回日报列表
 
 
 @app.route('/api/latest')
@@ -217,18 +256,18 @@ def latest():
     返回值:
     返回一个包含最新日报的JSON响应。
     """
-    # 打开并读取数据列表文件
-    with open('engine/data/database_list.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
-        data.sort(key=lambda x: x['date'])  # 按日期排序
+    # 打开并读取数据库
 
-    latest_date = data[-1]["date"]  # 获取最新日报日期
+    data = daily.find().sort('_id', -1).limit(1).next()
 
-    # 打开并读取最新日报数据文件
-    with open('engine/data/database/' + latest_date + '.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    if data is None:
+        # 如果未找到最新日报，则返回404错误
+        response = jsonify({"error": "not found"})
+        response.status_code = 404
+        return response
 
-    return jsonify(data)  # 返回最新日报数据
+    del data['_id']  # 删除MongoDB自动添加的_id字段
+    return jsonify(data)  # 返回最新日报
 
 
 @app.route('/api/redstonesearch')
@@ -237,6 +276,7 @@ def redstonesearch():
     红石图寻
     :return:
     """
+
     # 主函数
     def main():
         # 调用异步函数获取图片
@@ -282,6 +322,7 @@ def redstonesearch():
 
     main()
 
+
 @app.route('/api/redstonesearch/test')
 def redstonesearch_test():
     """
@@ -294,7 +335,8 @@ def redstonesearch_test():
     source_url = request.args.get('source')
     target_url = request.args.get('target')
 
-    return str(rsstet.test(source_url, target_url))
+    return str(rsstest.test(source_url, target_url))
+
 
 # Vue页面，放在/vue下
 @app.route('/vue', methods=['GET'])
@@ -304,9 +346,11 @@ def index_vue():
     """
     return send_file(pages_vue_dir / 'index.html')
 
+
 @app.route("/vue/<path:filename>", methods=['GET'])
 def res_vue(filename):
     return send_from_directory(pages_vue_dir, filename, as_attachment=False)
+
 
 # Flutter页面，放在/下
 @app.route('/', methods=['GET'])
@@ -315,6 +359,7 @@ def index():
     首页
     """
     return send_file(pages_flutter_dir / 'index.html')
+
 
 @app.route("/<path:filename>", methods=['GET'])
 def res(filename):

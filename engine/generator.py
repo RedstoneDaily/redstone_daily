@@ -218,7 +218,7 @@ def transform_video_item(video_item: dict) -> dict:
             "favorite": video_item['favorite'],
             "danmaku": video_item['danmaku'],
             "score": video_item['score']
-        },
+        }, 
         "author": {
             "name": data_filter(video_item['author']),
             "upic": video_item['upic']

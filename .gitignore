@@ -1,6 +1,6 @@
 **/__pycache__
 .venv
-/engine/config/credential.txt
-/engine/data/*
+/engine_old/config/credential.txt
+/engine_old/data/*
 /acaciamc/
 /redstonesearch/frames/

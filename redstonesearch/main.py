@@ -129,10 +129,10 @@ async def get():
 
     videos = []
     # 读取数据库
-    with open("engine/data/database_list.json") as list:
+    with open("engine_old/data/database_list.json") as list:
         files = json.load(list)
         for file in files:
-            with open("engine/data/database/" + file["date"] + ".json", "r", encoding="utf-8") as f:
+            with open("engine_old/data/database/" + file["date"] + ".json", "r", encoding="utf-8") as f:
                 for _video in json.load(f)["content"]:
                     videos.append(int(_video["url"].split("av")[1]))
 

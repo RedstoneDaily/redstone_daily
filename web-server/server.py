@@ -15,7 +15,7 @@ app = Flask(__name__)
 app_register = Flask("Gallery")
 
 # Paths
-engine_dir = Path.cwd() / 'engine'
+engine_dir = Path.cwd() / 'engine_old'
 pages_dir = Path.cwd().parent / "frontend"
 gallery_dir = pages_dir / "pages-legacy" / "GalleryDemo"
 

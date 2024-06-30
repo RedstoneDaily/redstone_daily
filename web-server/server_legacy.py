@@ -1,4 +1,10 @@
 #coding=utf-8
+
+'''
+芝士旧版服务器代码
+但是有一段似乎还有点用所以先保留一下（
+'''
+
 import os
 from pathlib import Path
 import sys

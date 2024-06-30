@@ -1,18 +1,30 @@
 import asyncio
+from functools import wraps
 import io
 import json
 import os
 import time
 from pathlib import Path
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, make_response, request
 from flask import send_file, send_from_directory, redirect, Response
 from flask_cors import CORS
 from markupsafe import escape
+import yaml
 
 from redstonesearch import main as rssget
 from redstonesearch import test as rsstest
 from pymongo import MongoClient
+
+
+os.chdir(Path(__file__).parent.parent)  # 切换工作目录到仓库根目录
+pages_dir = Path.cwd().parent / "frontend"  # 前端仓库目录
+pages_flutter_dir = pages_dir / "flutter_project" / "build" / "web" # Flutter页面目录
+pages_vue_dir = pages_dir / "vue"  # Vue页面目录
+
+# 读取配置文件 config.yml
+with open(Path(__file__).parent / 'config.yml', 'r') as f:
+    config = yaml.safe_load(f)
 
 # 连接数据库
 client = MongoClient()
@@ -20,10 +32,6 @@ db = client['redstone_daily']
 
 daily = db['daily']  # 今日数据
 
-os.chdir(Path(__file__).parent.parent)  # 切换工作目录到仓库根目录
-pages_dir = Path.cwd().parent / "frontend"  # 前端仓库目录
-pages_flutter_dir = pages_dir / "flutter" / "build" / "web" # Flutter页面目录
-pages_vue_dir = pages_dir / "vue"  # Vue页面目录
 
 app = Flask(__name__)
 # CORS(app, origins=["http://localhost:18042"])
@@ -52,6 +60,24 @@ def asyncio_wrapper(job):
     finally:
         loop.close()
 
+# 装饰器，设置自定义响应头X-Response-Type
+def set_x_response_type(response_type: str):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            try:
+                response = f(*args, **kwargs)
+            except Exception as e:
+                # 在发生异常时,返回500错误
+                return make_response(str(e), 500)
+            
+            # 使用make_response封装返回值
+            resp = make_response(response)
+            resp.headers['X-Response-Type'] = response_type
+            return resp
+        return decorated_function
+    return decorator
+
 
 # 预处理-重定向
 @app.before_request
@@ -61,20 +87,6 @@ def before_request():
         url = request.url.replace('https://', 'http://', 1)
         code = 301
         return redirect(url, code=code)
-
-    # 读取并解析image-cdn-list.json文件
-    cdn_dict_path = Path(__file__).parent / 'image-cdn-list.json'
-    with cdn_dict_path.open('r') as f:
-        cdn_dict = json.load(f)
-    
-    # 重定向由image-cdn托管的文件
-    if request.path in cdn_dict:
-        cdn_url = cdn_dict[request.path]
-        # 构建响应对象并设置头信息
-        response = redirect(cdn_url, code=302)
-        response.headers['Referer'] = 'https://redstonedaily.top'  # 设置为你希望的 Referer
-        return response
-
 
 @app.route('/api/daily')
 def user_page():
@@ -346,8 +358,9 @@ def index_vue():
     """
     return send_file(pages_vue_dir / 'index.html')
 
-
+# Vue页面资源
 @app.route("/vue/<path:filename>", methods=['GET'])
+@set_x_response_type('static')
 def res_vue(filename):
     return send_from_directory(pages_vue_dir, filename, as_attachment=False)
 
@@ -360,10 +373,21 @@ def index():
     """
     return send_file(pages_flutter_dir / 'index.html')
 
-
+# Flutter页面资源
 @app.route("/<path:filename>", methods=['GET'])
+@set_x_response_type('static')
 def res(filename):
     return send_from_directory(pages_flutter_dir, filename, as_attachment=False)
 
+
+@app.after_request
+def after_request(response):
+    
+    # 若响应为页面资源文件，则重定向至 cdn 域名下
+    if config['cdn']['enabled'] and isinstance(response, Response) and response.headers.get('X-Response-Type') == 'static':
+        response = redirect(config['cdn']['base'].rstrip('/') + '/' + request.path.lstrip('/'), code=302)
+        response.headers['Referer'] = request.host_url.rstrip('/')
+    
+    return response
 
 app.run(debug=True)

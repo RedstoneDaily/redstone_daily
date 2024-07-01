@@ -60,8 +60,8 @@ def asyncio_wrapper(job):
 
 
 def send_from_directory_cdn_proxied(
-        directory: os.PathLike[str] | str,
-        path: os.PathLike[str] | str,
+        directory: str,
+        path: str,
         **kwargs):
     """
     通过 CDN 代理发送文件。

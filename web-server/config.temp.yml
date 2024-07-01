@@ -19,3 +19,6 @@ db:
 
   # Database port
   port: 54017
+
+  # Database name
+  name: "redstone_daily"

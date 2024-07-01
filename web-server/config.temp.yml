@@ -18,7 +18,7 @@ db:
   host: "mongodb://redstonedaily.top"
 
   # Database port
-  port: 54017
+  port: 12345
 
   # Database name
   name: "redstone_daily"

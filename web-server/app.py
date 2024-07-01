@@ -26,9 +26,9 @@ with open(Path(__file__).parent / 'config.yml', 'r') as f:
 
 # 连接数据库
 # TODO: Exception handling
-with config.get('db') as db_config:
-    client = MongoClient(db_config['host'], db_config['port'])
-    db = client[db_config['name']]
+db_config = config.get('db')
+client = MongoClient(db_config['host'], db_config['port'])
+db = client[db_config['name']]
 daily = db['daily']  # 今日数据
 
 

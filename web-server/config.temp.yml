@@ -1,0 +1,11 @@
+
+# CDN configuration
+cdn:
+  # Enable or disable the CDN
+  enabled: True
+
+  # The base path of the proxied files, which affects the resolved relative path
+  src_fs_base: "../frontend"
+
+  # The base URL of the CDN
+  dst_url_base: "https://cstatic.charcaius.com/dev/"

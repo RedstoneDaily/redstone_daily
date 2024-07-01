@@ -1,25 +1,23 @@
 import asyncio
-from functools import wraps
 import io
 import json
 import os
 import time
 from pathlib import Path
+from urllib.parse import *
 
-from flask import Flask, jsonify, make_response, request
-from flask import send_file, send_from_directory, redirect, Response
+import yaml
+from flask import *
 from flask_cors import CORS
 from markupsafe import escape
-import yaml
+from pymongo import MongoClient
 
 from redstonesearch import main as rssget
 from redstonesearch import test as rsstest
-from pymongo import MongoClient
-
 
 os.chdir(Path(__file__).parent.parent)  # 切换工作目录到仓库根目录
 pages_dir = Path.cwd().parent / "frontend"  # 前端仓库目录
-pages_flutter_dir = pages_dir / "flutter_project" / "build" / "web" # Flutter页面目录
+pages_flutter_dir = pages_dir / "flutter_project" / "build" / "web"  # Flutter页面目录
 pages_vue_dir = pages_dir / "vue"  # Vue页面目录
 
 # 读取配置文件 config.yml
@@ -60,26 +58,56 @@ def asyncio_wrapper(job):
     finally:
         loop.close()
 
-# 装饰器，设置自定义响应头X-Response-Type
-def set_x_response_type(response_type: str):
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            try:
-                response = f(*args, **kwargs)
-            except Exception as e:
-                # 在发生异常时,返回500错误
-                return make_response(str(e), 500)
-            
-            # 使用make_response封装返回值
-            resp = make_response(response)
-            resp.headers['X-Response-Type'] = response_type
-            return resp
-        return decorated_function
-    return decorator
+
+def send_from_directory_cdn_proxied(
+        directory: os.PathLike[str] | str,
+        path: os.PathLike[str] | str,
+        **kwargs):
+    """
+    通过 CDN 代理发送文件。
+
+    该函数将检查全局 `config` 对象,以确定是否启用了 CDN。
+    如果启用,它将将请求重定向到 CDN URL。
+    否则,它将使用 `send_from_directory` 直接提供该文件。
+
+    参数:
+        filename (str): 要发送的文件名。
+        directory (str, optional): 包含该文件的目录。默认为 'static'。
+        **kwargs: 传递给 `send_from_directory` 的其他关键字参数。
+
+    返回:
+        一个 Flask 响应对象。
+    """
+
+    try:
+
+        # Get the CDN configuration
+        cdn_config = config.get("cdn", {})
+        cdn_enabled = cdn_config.get("enabled", False)
+        src_fs_base = Path(cdn_config.get("src_fs_base", ".")).resolve()
+        p = urlparse(cdn_config.get("dst_url_base"))
+        cdn_url_base = urlunsplit((p.scheme, p.netloc, p.path, "", ""))
+
+        # Check if the CDN is enabled
+        if cdn_enabled:
+            # Construct the CDN URL
+            fs_path = (Path(directory) / path).resolve()
+            if fs_path.is_relative_to(src_fs_base):
+                relative_path = fs_path.relative_to(src_fs_base)
+                cdn_url = urljoin(cdn_url_base.rstrip(
+                    '/') + '/', str(relative_path))
+                # Make a redirect response
+                response = redirect(cdn_url, code=302)
+                response.headers['Referer'] = request.host_url.rstrip('/')
+                return response
+
+    except Exception as ex:
+        print(ex)
+
+    # If not possible, serve the file directly
+    return send_from_directory(directory, path, **kwargs)
 
 
-# 预处理-重定向
 @app.before_request
 def before_request():
     # 把https请求重定向到http请求
@@ -87,6 +115,7 @@ def before_request():
         url = request.url.replace('https://', 'http://', 1)
         code = 301
         return redirect(url, code=code)
+
 
 @app.route('/api/daily')
 def user_page():
@@ -256,7 +285,8 @@ def list():
     res = []  # 初始化结果列表
 
     for i in data:
-        res.append({"date": i['title'], "title": i['content'][0]['title']})  # 取出日期字段和标题字段
+        # 取出日期字段和标题字段
+        res.append({"date": i['title'], "title": i['content'][0]['title']})
 
     return jsonify(res)  # 返回日报列表
 
@@ -358,36 +388,26 @@ def index_vue():
     """
     return send_file(pages_vue_dir / 'index.html')
 
-# Vue页面资源
+
 @app.route("/vue/<path:filename>", methods=['GET'])
-@set_x_response_type('static')
+# Vue页面资源
 def res_vue(filename):
-    return send_from_directory(pages_vue_dir, filename, as_attachment=False)
+    return send_from_directory_cdn_proxied(pages_vue_dir, filename, as_attachment=False)
 
 
-# Flutter页面，放在/下
 @app.route('/', methods=['GET'])
+# Flutter页面，放在/下
 def index():
     """
     首页
     """
     return send_file(pages_flutter_dir / 'index.html')
 
-# Flutter页面资源
+
 @app.route("/<path:filename>", methods=['GET'])
-@set_x_response_type('static')
+# Flutter页面资源
 def res(filename):
-    return send_from_directory(pages_flutter_dir, filename, as_attachment=False)
+    return send_from_directory_cdn_proxied(pages_flutter_dir, filename, as_attachment=False)
 
-
-@app.after_request
-def after_request(response):
-    
-    # 若响应为页面资源文件，则重定向至 cdn 域名下
-    if config['cdn']['enabled'] and isinstance(response, Response) and response.headers.get('X-Response-Type') == 'static':
-        response = redirect(config['cdn']['base'].rstrip('/') + '/' + request.path.lstrip('/'), code=302)
-        response.headers['Referer'] = request.host_url.rstrip('/')
-    
-    return response
 
 app.run(debug=True)

@@ -25,9 +25,10 @@ with open(Path(__file__).parent / 'config.yml', 'r') as f:
     config = yaml.safe_load(f)
 
 # 连接数据库
-client = MongoClient()
-db = client['redstone_daily']
-
+# TODO: Exception handling
+with config.get('db') as db_config:
+    client = MongoClient(db_config['host'], db_config['port'])
+    db = client[db_config['name']]
 daily = db['daily']  # 今日数据
 
 

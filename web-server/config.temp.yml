@@ -1,6 +1,7 @@
 
 # CDN configuration
 cdn:
+
   # Enable or disable the CDN
   enabled: True
 
@@ -9,3 +10,12 @@ cdn:
 
   # The base URL of the CDN
   dst_url_base: "https://cstatic.charcaius.com/dev/"
+
+# MongoDB configuration
+db:
+
+  # Database host
+  host: "mongodb://redstonedaily.top"
+
+  # Database port
+  port: 54017

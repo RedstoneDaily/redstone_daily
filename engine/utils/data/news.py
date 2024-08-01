@@ -31,17 +31,6 @@ class News:
 
         return self.database.find({"date": date})
 
-    @cached(LRUCache(maxsize=config.cache_ratio * 32))
-    def get_item_by_id(self, item_id: int) -> dict:
-        """
-        根据id获取新闻内容
-        :param item_id: 新闻id
-        :return: 新闻内容
-        """
-        doc = self.database.find_one({"id": item_id})
-
-        return doc if doc else {}
-
     def search_item(self, keyword: str, page_count: int = 1, page_size: int = 20,
                     item_type: str = 'all', sort: str = 'date', strictness: str = 'loose') -> list:
         """

@@ -125,6 +125,7 @@ def bilibili():
             'aid': recent_videos[index]['aid'],
             'bvid': recent_videos[index]['bvid'],
             'weight': recent_videos[index]['weight'],
+            'date': time.strftime("%Y-%m-%d", time.localtime()),
             'data': {
                 'play': recent_videos[index]['play'],
                 'danmaku': recent_videos[index]['danmaku'],
@@ -145,7 +146,7 @@ def bilibili():
 
     """ 保存数据 """
 
-    items = get_database().set_collection('news_item')
+    items = get_database().set_collection('news_items')
     for item in recent_videos:
         items.insert_one(item) if item['weight'] > 1 else None  # 权重大于1的才保存到数据库
 

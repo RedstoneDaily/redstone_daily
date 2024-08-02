@@ -73,7 +73,7 @@ class News:
 
         # 排序
         if sort == 'date':
-            sorted_results = sorted(results, key=lambda x: x['id'])
+            sorted_results = sorted(results, key=lambda x: x['pubdate'])
         elif sort == 'like':
             sorted_results = sorted(results, key=lambda x: x['data']['like'])
         else:
@@ -81,16 +81,39 @@ class News:
 
         return sorted_results[page_size * (page_count - 1): page_size * page_count]
 
+    def get_latest(self):
+        """
+        获取最新新闻
+        :return: 最新新闻
+        """
+
+        # 首先找到字段 'pubdate' 的最大值
+        pipeline_max = [
+            {"$group": {"_id": None, "max_value": {"$max": "$pubdate"}}}
+        ]
+
+        # 执行聚合查询以获取最大值
+        max_result = next(self.database.aggregate(pipeline_max), None)
+        max_value = max_result['max_value'] if max_result else None
+
+        # 如果找到了最大值，则查询含有这个最大值的文档
+        if max_value is not None:
+            # 查询匹配最大值的文档
+            max_doc = self.database.find_one({"pubdate": max_value})
+
+            # 获取当日新闻
+            return self.get_news_by_date(max_doc['date'])
+
 
 news = News()
 
 if __name__ == '__main__':
     # 测试用例
     _time = time.time()
-    news_item = news.get_news_by_date('this_isnt_a_date')
+    news_item = news.get_news_by_date('2024-08-03')
     print(time.time() - _time)
 
-    print(news_item[0]['id'])
+    print(news_item[0])
 
     # 测试缓存
     _time = time.time()
@@ -111,3 +134,6 @@ if __name__ == '__main__':
 
     news_item = news.search_item('test title', page_count=1, page_size=20, item_type='video')  # 新闻类型为video
     print(f'{news_item}')
+
+    for i in news.get_latest():
+        print(i)

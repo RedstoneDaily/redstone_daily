@@ -60,7 +60,7 @@ def query():
             del i['_id']
             tmp.append(i)
 
-        response_.append({'date': date, 'data': tmp)
+        response_.append({'date': date, 'data': tmp})
 
     return jsonify(response_)
 

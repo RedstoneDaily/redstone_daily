@@ -65,13 +65,30 @@ def query():
     return jsonify(response_)
 
 
-@app.route('/latest')
+@app.route('/daily/')
+@app.route('/daily/latest')
 def latest():
     """
     获取最新新闻
     :return: List[Dict]
     """
     news_ = news.get_latest()
+    response_ = []
+
+    for i in news_:  # 删除MongoDB自动添加的_id字段
+        del i['_id']
+        response_.append(i)
+
+    return jsonify(response_)
+
+
+@app.route('/daily/earliest')
+def earliest():
+    """
+    获取最早新闻
+    :return: List[Dict]
+    """
+    news_ = news.get_latest(True)
     response_ = []
 
     for i in news_:  # 删除MongoDB自动添加的_id字段

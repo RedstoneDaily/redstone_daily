@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from cachetools import LRUCache, cached
 from engine.config import config
 from engine.utils.data.database import get_database
@@ -30,6 +32,35 @@ class News:
         """
 
         return self.database.find({"date": date})
+
+    @cached(LRUCache(maxsize=config.cache_ratio * 8))
+    def get_news_by_date_range(self, start: str, end: str) -> list:
+        """
+        根据日期范围获取新闻内容
+        :param start: 开始日期
+        :param end: 结束日期
+        :return: 新闻内容
+        """
+
+        # 将日期字符串转换为datetime对象
+        start_date = datetime.strptime(start, "%Y-%m-%d")
+        end_date = datetime.strptime(end, "%Y-%m-%d")
+
+        # 所有日期列表
+        date_list = []
+
+        # 循环生成日期列表
+        current_date = start_date
+        while current_date <= end_date:
+            date_list.append(current_date.strftime("%Y-%m-%d"))
+            current_date += timedelta(days=1)
+
+        # 查询数据库
+        news_list = []
+        for date in date_list:
+            news_list.extend(self.database.find({"date": date}))
+
+        return news_list
 
     def search_item(self, keyword: str, page_count: int = 1, page_size: int = 20,
                     item_type: str = 'all', sort: str = 'date', strictness: str = 'loose') -> list:
@@ -81,16 +112,15 @@ class News:
 
         return sorted_results[page_size * (page_count - 1): page_size * page_count]
 
-    def get_latest(self):
+    def get_latest(self, earliest: bool = False):
         """
         获取最新新闻
         :return: 最新新闻
         """
 
         # 首先找到字段 'pubdate' 的最大值
-        pipeline_max = [
-            {"$group": {"_id": None, "max_value": {"$max": "$pubdate"}}}
-        ]
+        pipeline_max = [{"$group": {"_id": None, "max_value": {"$max": "$pubdate"}}}] if earliest else [
+            {"$group": {"_id": None, "min_value": {"$min": "$pubdate"}}}]
 
         # 执行聚合查询以获取最大值
         max_result = next(self.database.aggregate(pipeline_max), None)

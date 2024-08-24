@@ -36,7 +36,10 @@ def query():
     start = request.args.get('start_date', None)
     end = request.args.get('end_date', None)
 
-    return jsonify(news.get_news_by_date_range(start, end))
+    try:
+        return jsonify(news.get_news_by_date_range(start, end))
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
 
 
 @app.route('/daily/')
@@ -63,6 +66,23 @@ def earliest():
     :return: List[Dict]
     """
     news_ = news.get_latest(True)
+    response_ = []
+
+    for i in news_:  # 删除MongoDB自动添加的_id字段
+        del i['_id']
+        response_.append(i)
+
+    return jsonify(response_)
+
+
+@app.route('/daily/all')
+def all():
+    """
+    获取所有新闻
+    :return:
+    """
+
+    news_ = news.get_all()
     response_ = []
 
     for i in news_:  # 删除MongoDB自动添加的_id字段

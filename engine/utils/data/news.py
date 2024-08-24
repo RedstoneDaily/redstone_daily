@@ -54,6 +54,10 @@ class News:
             date_list.append(current_date.strftime("%Y-%m-%d"))
             current_date += timedelta(days=1)
 
+        # 如果时间跨度过长，则抛出异常
+        if len(date_list) > 100:
+            raise ValueError(f'时间跨度过长(最大100天): {len(date_list)}天')
+
         # 查询数据库
         news_list = self.database.find({"date": {"$in": date_list}})
 
@@ -136,6 +140,13 @@ class News:
 
             # 获取当日新闻
             return self.get_news_by_date(max_doc['date'])
+
+    def get_all(self):
+        """
+        获取所有新闻
+        :return: 所有新闻
+        """
+        return self.database.find()
 
 
 news = News()

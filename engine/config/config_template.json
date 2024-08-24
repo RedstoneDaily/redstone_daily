@@ -1,4 +1,5 @@
 {
     "db_host": "your db connection string",
-    "cache_ratio": 128
+    "cache_ratio": 128,
+    "warning": "请修改你的配置文件名为此文件同级目录下的config.json"
 }

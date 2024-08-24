@@ -33,8 +33,7 @@ class News:
 
         return self.database.find({"date": date})
 
-    @cached(LRUCache(maxsize=config.cache_ratio * 8))
-    def get_news_by_date_range(self, start: str, end: str) -> list:
+    def get_news_by_date_range(self, start: str, end: str) -> dict:
         """
         根据日期范围获取新闻内容
         :param start: 开始日期
@@ -56,11 +55,15 @@ class News:
             current_date += timedelta(days=1)
 
         # 查询数据库
-        news_list = []
-        for date in date_list:
-            news_list.extend(self.database.find({"date": date}))
+        news_list = self.database.find({"date": {"$in": date_list}})
 
-        return news_list
+        # 处理数据格式
+        results = {date: [] for date in date_list}
+        for item in news_list:
+            del item['_id']
+            results[item['date']].append(item)
+
+        return results
 
     def search_item(self, keyword: str, page_count: int = 1, page_size: int = 20,
                     item_type: str = 'all', sort: str = 'date', strictness: str = 'loose') -> list:
@@ -119,8 +122,8 @@ class News:
         """
 
         # 首先找到字段 'pubdate' 的最大值
-        pipeline_max = [{"$group": {"_id": None, "max_value": {"$max": "$pubdate"}}}] if earliest else [
-            {"$group": {"_id": None, "min_value": {"$min": "$pubdate"}}}]
+        pipeline_max = [{"$group": {"_id": None, "max_value": {"$min": "$pubdate"}}}] if earliest else [
+            {"$group": {"_id": None, "max_value": {"$max": "$pubdate"}}}]
 
         # 执行聚合查询以获取最大值
         max_result = next(self.database.aggregate(pipeline_max), None)
@@ -139,18 +142,23 @@ news = News()
 
 if __name__ == '__main__':
     # 测试用例
+    print(' --- 测试 get_news_by_date --- ')
     _time = time.time()
     news_item = news.get_news_by_date('2024-08-03')
     print(time.time() - _time)
 
     print(news_item[0])
 
-    # 测试缓存
-    _time = time.time()
-    news_item = news.get_news_by_date('test_date')
-    print(time.time() - _time)
-    print(news_item)
+    print(' --- 测试 get_latest --- ')
+    print(news.get_latest())
 
+    print(' --- 测试 get_news_by_date_range --- ')
+    news_item = news.get_news_by_date_range('2024-08-01', '2024-08-03')
+    print(news_item)
+    for i in news_item:
+        print(i)
+
+    print(' --- 测试 search_item --- ')
     # 测试搜索
     news_item = news.search_item('test title', page_count=1, page_size=20, item_type='all')  # 部分匹配
     print(f'{news_item}')
@@ -164,6 +172,3 @@ if __name__ == '__main__':
 
     news_item = news.search_item('test title', page_count=1, page_size=20, item_type='video')  # 新闻类型为video
     print(f'{news_item}')
-
-    for i in news.get_latest():
-        print(i)

@@ -11,3 +11,4 @@ httpx~=0.26.0
 Levenshtein~=0.25.1
 numpy<2
 pymongo~=4.7.3
+cachetools~=5.3.3

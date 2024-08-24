@@ -7,8 +7,8 @@ from cachetools import LRUCache
 
 
 class Database:
-    def __init__(self, host: str, port: int, username: str, password: str, db_name: str):
-        self.database = pymongo.MongoClient(host, port, username=username, password=password)[db_name]
+    def __init__(self, host: str, db_name: str):
+        self.database = pymongo.MongoClient(host)[db_name]
         self.collection = None
 
     def set_collection(self, collection_name: str) -> 'Database':
@@ -43,8 +43,6 @@ class Database:
         return getattr(self.collection, name)
 
 
-
-
 def get_database(db_name: str = 'redstone_daily'):
     """
     获取数据库对象
@@ -52,5 +50,9 @@ def get_database(db_name: str = 'redstone_daily'):
     :return: 数据库对象
     """
 
-    database = Database(config.db_host, config.db_port, config.db_username, config.db_password, db_name)
+    database = Database(config.db_host, db_name)
     return database.set_collection(db_name)
+
+
+if __name__ == '__main__':
+    db = get_database()

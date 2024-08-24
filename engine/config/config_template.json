@@ -1,0 +1,4 @@
+{
+    "db_host": "your db connection string",
+    "cache_ratio": 128
+}

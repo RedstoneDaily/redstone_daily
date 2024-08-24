@@ -11,10 +11,10 @@
 
 使用engine中的代码可以进行数据的爬取和自动化筛选和储存，参考[这里](engine_old/README.md)
 
-### webserver: 用于展示日报数据的后端flask框架
+### webserver: 提供API服务的Flask框架
 
-webserver用于网页的展示，以及API用于前端获取日报信息，参考[这里](web-server/README.md)
+webserver提供API服务用于前端获取日报信息，文档（TODO）
 
 ### redstone-search: 红石图寻: 小游戏
 
-redstone-search提供一张随机红石图片, 用户可以寻找这张图片的出处并对相似性进行评分。参考[这里](redstonesearch/README.md)
+redstone-search提供一张随机红石图片, 用户可以寻找这张图片的出处并对相似性进行评分。（失踪了（?

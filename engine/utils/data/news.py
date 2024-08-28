@@ -111,7 +111,7 @@ class News:
 
         # 排序
         if sort == 'date':
-            sorted_results = sorted(results, key=lambda x: x['pubdate'])
+            sorted_results = sorted(results, key=lambda x: x['pubdate'], reverse=True)
         elif sort == 'like':
             sorted_results = sorted(results, key=lambda x: x['data']['like'])
         else:

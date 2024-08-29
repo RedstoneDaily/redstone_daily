@@ -54,9 +54,9 @@ class News:
             date_list.append(current_date.strftime("%Y-%m-%d"))
             current_date += timedelta(days=1)
 
-        # 如果时间跨度过长，则抛出异常
-        if len(date_list) > 100:
-            raise ValueError(f'时间跨度过长(最大100天): {len(date_list)}天')
+            # 如果时间跨度过长，则抛出异常
+            if len(date_list) > 100:
+                raise ValueError('时间跨度过长(最大100天)')
 
         # 查询数据库
         news_list = self.database.find({"date": {"$in": date_list}})
@@ -132,6 +132,7 @@ class News:
         # 执行聚合查询以获取最大值
         max_result = next(self.database.aggregate(pipeline_max), None)
         max_value = max_result['max_value'] if max_result else None
+        print(max_value)
 
         # 如果找到了最大值，则查询含有这个最大值的文档
         if max_value is not None:

@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import datetime, timedelta
 
 from flask import Flask, request, jsonify
@@ -8,6 +9,11 @@ from engine.utils.data.news import news
 app = Flask(__name__)
 
 
+@app.route('/daily/get/')
+def daily_with_no_date():
+    return jsonify({'error': '日期参数不能为空, 请检查文档: https://docs.rsdaily.com/api-209738938'}), 422
+
+
 @app.route('/daily/get/<date>')
 def daily(date):
     """
@@ -15,6 +21,9 @@ def daily(date):
     :param date: 日期,YYYY-MM-DD
     :return: List[Dict]
     """
+
+    if not re.match(r'^\d{4}-\d{2}-\d{2}$', date):
+        return jsonify({'error': '日期格式错误, 确保为YYYY-MM-DD格式 文档: https://docs.rsdaily.com/api-209738938'}), 422
 
     news_ = news.get_news_by_date(date)
     response_ = []
@@ -36,10 +45,17 @@ def query():
     start = request.args.get('start_date', None)
     end = request.args.get('end_date', None)
 
+    if start is None or end is None:
+        return jsonify({'error': '参数不全或未正确命名, 请检查文档: https://docs.rsdaily.com/api-209740195'}), 422
+
+    if not re.match(r'^\d{4}-\d{2}-\d{2}$', start) or not re.match(r'^\d{4}-\d{2}-\d{2}$', end):
+        return jsonify({'error': '日期格式错误, 确保为YYYY-MM-DD格式 文档: https://docs.rsdaily.com/api-209740195'}), 422
+
     try:
         return jsonify(news.get_news_by_date_range(start, end))
     except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        if e.args[0] == '时间跨度过长(最大100天)':
+            return jsonify({'error': str(e)}), 422
 
 
 @app.route('/daily/')

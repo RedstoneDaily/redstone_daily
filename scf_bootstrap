@@ -1,2 +1,2 @@
 #!/bin/bash
-/var/lang/python310/bin/python3 -m flask --app engine/webserver run --host=0.0.0.0 --port 9000
+/var/lang/python310/bin/python3.10 -m flask --app engine/webserver run --host=0.0.0.0 --port 9000

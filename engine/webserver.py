@@ -132,4 +132,4 @@ def search(query):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=IS_SERVERLESS != True, port=9000, host='0.0.0.0')

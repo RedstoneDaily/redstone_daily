@@ -6,6 +6,9 @@ from flask import Flask, request, jsonify
 
 from engine.utils.data.news import news
 
+IS_SERVERLESS = bool(os.environ.get('SERVERLESS'))
+print(IS_SERVERLESS)
+
 app = Flask(__name__)
 
 

@@ -1,5 +1,6 @@
 **/__pycache__
 .venv
+.venv-win
 /engine_old/config/credential.txt
 /engine_old/data/*
 /acaciamc/

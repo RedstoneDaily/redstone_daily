@@ -4,7 +4,7 @@ from engine.config import weight_map
 from engine.utils.data.database import get_database
 
 
-def bilibili():
+def bilibili(dry_run=False):
     """
     获取哔哩哔哩视频新闻
     :return: 新闻, 还能是什么?
@@ -151,13 +151,14 @@ def bilibili():
 
     """ 保存数据 """
 
-    items = get_database().set_collection('news_items')
-    for item in recent_videos:
-        items.insert_one(item) if item['weight'] > 1 else None  # 权重大于1的才保存到数据库
+    if not dry_run:
+        items = get_database().set_collection('news_items')
+        for item in recent_videos:
+            items.insert_one(item) if item['weight'] > 1 else None  # 权重大于1的才保存到数据库
 
-    original = get_database().set_collection('original_items')
-    for item in recent_videos:
-        original.insert_one(item)
+        original = get_database().set_collection('original_items')
+        for item in recent_videos:
+            original.insert_one(item)
 
     return recent_videos
 

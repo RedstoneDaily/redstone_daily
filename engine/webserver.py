@@ -58,7 +58,7 @@ def query():
             return jsonify({'error': str(e)}), 422
 
 
-@app.route('/daily/')
+@app.route('/daily')
 @app.route('/daily/latest')
 def latest():
     """

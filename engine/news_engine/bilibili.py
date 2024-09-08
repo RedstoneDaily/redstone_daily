@@ -133,6 +133,11 @@ def bilibili():
                 'favorite': recent_videos[index]['favorites'],
                 'review': recent_videos[index]['review'],
                 'duration': recent_videos[index]['duration'],
+                'score': (recent_videos[index]['like'] / recent_videos[index]['play']
+                       + recent_videos[index]['danmaku'] / recent_videos[index]['play']
+                       + recent_videos[index]['review'] / recent_videos[index]['play']
+                       - recent_videos[index]['favorite'] / recent_videos[index]['play'])
+                       * recent_videos[index]['weight'],
                 'owner': {
                     'author': recent_videos[index]['author'],
                     'face': recent_videos[index]['upic']

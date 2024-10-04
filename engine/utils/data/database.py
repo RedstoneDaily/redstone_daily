@@ -43,15 +43,16 @@ class Database:
         return getattr(self.collection, name)
 
 
-def get_database(db_name: str = 'redstone_daily'):
+def get_database(collection_name: str = 'redstone_daily', db_name: str ='redstone_daily'):
     """
     获取数据库对象
     :param db_name: 数据库名称
+    :param collection_name: 集合名称
     :return: 数据库对象
     """
 
     database = Database(config.db_host, db_name)
-    return database.set_collection(db_name)
+    return database.set_collection(collection_name)
 
 
 if __name__ == '__main__':

@@ -34,6 +34,7 @@ class News:
         return self.database.find({"date": date})
 
     def get_news_by_date_range(self, start: str, end: str) -> dict:
+
         """
         根据日期范围获取新闻内容
         :param start: 开始日期

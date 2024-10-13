@@ -1,16 +1,18 @@
 import os
 import re
+import time
 from datetime import datetime, timedelta
 
 from flask import Flask, request, jsonify
 
+from engine.utils.data.database import get_database
 from engine.utils.data.news import news
 
 IS_SERVERLESS = bool(os.environ.get('SERVERLESS'))
 print(IS_SERVERLESS)
 
 app = Flask(__name__)
-
+archive_db = get_database('archive')
 
 @app.route('/daily/get/')
 def daily_with_no_date():
@@ -130,6 +132,28 @@ def search(query):
     for i in news_:  # 删除MongoDB自动添加的_id字段
         del i['_id']
         response_.append(i)
+
+    return jsonify(response_)
+
+
+@app.route('/archive/<query>')
+def archive(query: str):
+    """
+    档案馆搜索
+    :param query: 搜索关键字
+    """
+
+    start_time = time.time()
+
+    result = list(archive_db.find({'content': {'$regex': query.replace('$', '')}}))
+    for i in result:
+        del i['_id']
+
+    end_time = time.time()
+    response_ = {
+        'time_used': end_time - start_time,
+        'data': result
+    }
 
     return jsonify(response_)
 

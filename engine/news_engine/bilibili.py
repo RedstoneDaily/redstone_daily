@@ -1,7 +1,7 @@
+import json
 import time
 from bilibili_api import search, sync, video, video_zone
-from engine.config import weight_map
-from engine.utils.data.database import get_database
+from engine.utils.data.database import get_database, weight_map
 
 
 def bilibili():
@@ -78,15 +78,15 @@ def bilibili():
         # 创建一个权重,用于分析视频数据
         weight = 0.99
 
-        for word in weight_map.terms:
+        for word in weight_map['terms']:
             if word in recent_videos[index]['title'] or word in recent_videos[index]['description'] or word in recent_videos[index]['tag']:
                 weight *= 1.5
 
-        for word in weight_map.blacklist:
+        for word in weight_map['blacklist']:
             if word in recent_videos[index]['title'] or word in recent_videos[index]['description'] or word in recent_videos[index]['tag']:
                 weight = 0
 
-        for word in weight_map.global_:
+        for word in weight_map['global']:
             if word['keyword'] in recent_videos[index]['title']:
                 weight *= word['weight']
             if word['keyword'] in recent_videos[index]['description']:
@@ -94,7 +94,7 @@ def bilibili():
             if word['keyword'] in recent_videos[index]['tag']:
                 weight *= word['weight']
 
-        for word in weight_map.special:
+        for word in weight_map['special']:
             if word['keyword'] in recent_videos[index]['title']:
                 weight *= word['title'][0]
             if word['keyword'] in recent_videos[index]['description']:
@@ -114,6 +114,7 @@ def bilibili():
     """ 结构化数据 """
 
     for index in range(len(recent_videos)):
+        print(json.dumps(recent_videos[index]))
 
         structured_data = {
             'type': 'video',
@@ -133,10 +134,10 @@ def bilibili():
                 'favorite': recent_videos[index]['favorites'],
                 'review': recent_videos[index]['review'],
                 'duration': recent_videos[index]['duration'],
-                'score': (recent_videos[index]['like'] / recent_videos[index]['play']
-                       + recent_videos[index]['danmaku'] / recent_videos[index]['play']
-                       + recent_videos[index]['review'] / recent_videos[index]['play']
-                       - recent_videos[index]['favorite'] / recent_videos[index]['play'])
+                'score': (recent_videos[index]['like'] / (recent_videos[index]['play'] + 1)
+                       + recent_videos[index]['danmaku'] / (recent_videos[index]['play'] + 1)
+                       + recent_videos[index]['review'] / (recent_videos[index]['play'] + 1)
+                       - recent_videos[index]['favorites'] / (recent_videos[index]['play'] + 1))
                        * recent_videos[index]['weight'],
                 'owner': {
                     'author': recent_videos[index]['author'],
@@ -151,16 +152,20 @@ def bilibili():
 
     """ 保存数据 """
 
-    items = get_database().set_collection('news_items')
-    for item in recent_videos:
-        items.insert_one(item) if item['weight'] > 1 else None  # 权重大于1的才保存到数据库
+    if __name__ != '__main__':
+        print("正在保存数据...")
+        time.sleep(5)
 
-    original = get_database().set_collection('original_items')
-    for item in recent_videos:
-        original.insert_one(item)
+        items = get_database().set_collection('news_items')
+        for item in recent_videos:
+            items.insert_one(item) if item['weight'] > 1 else None  # 权重大于1的才保存到数据库
+
+        original = get_database().set_collection('original_items')
+        for item in recent_videos:
+            original.insert_one(item)
 
     return recent_videos
 
 
 if __name__ == '__main__':
-    print(bilibili())
+    print([i if i['weight'] > 1 else None for i in bilibili()])

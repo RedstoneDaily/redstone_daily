@@ -55,5 +55,7 @@ def get_database(collection_name: str = 'redstone_daily', db_name: str ='redston
     return database.set_collection(collection_name)
 
 
+weight_map = get_database('config').find_one({'name': 'weight_map'})
+
 if __name__ == '__main__':
     db = get_database()

@@ -8,6 +8,9 @@ from flask import Flask, request, jsonify
 from engine.utils.data.database import get_database
 from engine.utils.data.news import news
 
+IS_SERVERLESS = bool(os.environ.get('SERVERLESS'))
+print(IS_SERVERLESS)
+
 app = Flask(__name__)
 archive_db = get_database('archive')
 
@@ -156,4 +159,4 @@ def archive(query: str):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=IS_SERVERLESS != True, port=9000, host='0.0.0.0')

@@ -4,7 +4,7 @@ from bilibili_api import search, sync, video, video_zone
 from engine.utils.data.database import get_database, weight_map
 
 
-def bilibili():
+def bilibili(dry_run=False):
     """
     获取哔哩哔哩视频新闻
     :return: 新闻, 还能是什么?
@@ -152,10 +152,7 @@ def bilibili():
 
     """ 保存数据 """
 
-    if __name__ != '__main__':
-        print("正在保存数据...")
-        time.sleep(5)
-
+    if not dry_run:
         items = get_database().set_collection('news_items')
         for item in recent_videos:
             items.insert_one(item) if item['weight'] > 1 else None  # 权重大于1的才保存到数据库
